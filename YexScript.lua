@@ -9,22 +9,30 @@ local Window = Rayfield:CreateWindow({
 		FolderName = "YexScriptHub",
 		FileName = "YexConfig"
 	},
-        Discord = {
-        	Enabled = false,
-        	Invite = "", 
-        	RememberJoins = true
-        },
-	KeySystem = false,
+	Discord = {
+		Enabled = true,
+		Invite = "https://discord.gg/gAJSCeZT",
+		RememberJoins = true
+	},
+	KeySystem = true,
 	KeySettings = {
 		Title = "YexScript Hub",
 		Subtitle = "Key System",
-		Note = "No method of obtaining the key is provided",
+		Note = "Join discord to get key!!",
 		FileName = "YexKey",
 		SaveKey = true,
 		GrabKeyFromSite = false,
-		Key = "yexhub"
+		Key = "Yexpogi"
 	}
 })
+
+local SelectedWeapon = "Melee"
+local AttackDelay = 1/6 -- Default Normal (6 attacks per second)
+local CurrentLevel = game.Players.LocalPlayer.Data.Level.Value -- Get player level
+local MirageIsland = false
+local KitsuneIsland = false
+local FullMoon = false
+local LegendarySwordDealer = false
 
 local MainTab = Window:CreateTab("Main", 4483362458)
 local TeleportTab = Window:CreateTab("Teleport", 4483362458)
@@ -41,7 +49,47 @@ MainTab:CreateToggle({
 		_G.AutoFarm = Value
 		while _G.AutoFarm do
 			task.wait()
-			-- Auto Farm logic here
+			-- Select correct island and quest based on player level
+			if CurrentLevel >= 1 and CurrentLevel <= 15 then
+				-- Farm Starter Island and its quest
+				-- Teleport logic
+				-- Take quest logic
+			elseif CurrentLevel >= 16 and CurrentLevel <= 30 then
+				-- Farm Jungle Island and its quest
+				-- Teleport logic
+				-- Take quest logic
+			elseif CurrentLevel >= 31 and CurrentLevel <= 45 then
+				-- Farm Pirate Village and its quest
+				-- Teleport logic
+				-- Take quest logic
+			elseif CurrentLevel >= 46 and CurrentLevel <= 60 then
+				-- Farm Desert and its quest
+				-- Teleport logic
+				-- Take quest logic
+			elseif CurrentLevel >= 61 and CurrentLevel <= 75 then
+				-- Farm Middle Town and its quest
+				-- Teleport logic
+				-- Take quest logic
+			-- Continue for all islands based on player level
+			end
+			
+			-- After quest is taken, start farming loop based on selected weapon
+			local Tool = nil
+			if SelectedWeapon == "Melee" then
+				Tool = game.Players.LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
+			else
+				for i,v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+					if v.Name:lower():find(SelectedWeapon:lower()) then
+						Tool = v
+						break
+					end
+				end
+			end
+			if Tool then
+				Tool.Parent = game.Players.LocalPlayer.Character
+				Tool:Activate()
+				task.wait(AttackDelay)
+			end
 		end
 	end,
 })
@@ -53,6 +101,22 @@ MainTab:CreateDropdown({
 	Flag = "WeaponSelector",
 	Callback = function(Option)
 		SelectedWeapon = Option
+	end,
+})
+
+MainTab:CreateDropdown({
+	Name = "Attack Speed",
+	Options = {"Normal (6/s)", "Fast (8/s)", "Super Fast (10/s)"},
+	CurrentOption = "Normal (6/s)",
+	Flag = "AttackSpeedSelector",
+	Callback = function(Option)
+		if Option == "Normal (6/s)" then
+			AttackDelay = 1/6
+		elseif Option == "Fast (8/s)" then
+			AttackDelay = 1/8
+		elseif Option == "Super Fast (10/s)" then
+			AttackDelay = 1/10
+		end
 	end,
 })
 
@@ -79,7 +143,7 @@ TeleportTab:CreateDropdown({
 	CurrentOption = "Starter Island",
 	Flag = "TeleportSea",
 	Callback = function(Option)
-		-- Teleport logic here
+		-- Teleport logic
 	end,
 })
 
@@ -97,7 +161,7 @@ ESPTab:CreateToggle({
 	CurrentValue = false,
 	Flag = "ESPFlowers",
 	Callback = function(Value)
-		-- ESP Flowers logic
+		-- ESP Flower logic
 	end,
 })
 
@@ -145,7 +209,38 @@ MiscTab:CreateSlider({
 	end,
 })
 
-StatusTab:CreateParagraph({Title = "Game Status", Content = "Mirage Island: False\nKitsune Island: False\nFull Moon: False\nLegendary Sword Dealer (Second Sea): False"})
+-- Update the status every 5 seconds
+local function UpdateStatus()
+	while true do
+		task.wait(5)
+		-- Update the real status here, for example:
+		-- Mirage Island Check
+		-- Kitsune Island Check
+		-- Full Moon Check
+		-- Legendary Sword Dealer Check
+		MirageIsland = game.Workspace:FindFirstChild("MirageIsland") ~= nil
+		KitsuneIsland = game.Workspace:FindFirstChild("KitsuneIsland") ~= nil
+		FullMoon = game.Workspace:FindFirstChild("FullMoon") ~= nil
+		LegendarySwordDealer = game.Workspace:FindFirstChild("SwordDealer") ~= nil
+		
+		-- Update StatusTab
+		StatusTab:UpdateParagraph({
+			Title = "Game Status",
+			Content = string.format(
+				"Mirage Island: %s\nKitsune Island: %s\nFull Moon: %s\nLegendary Sword Dealer (Second Sea): %s",
+				tostring(MirageIsland), tostring(KitsuneIsland), tostring(FullMoon), tostring(LegendarySwordDealer)
+			)
+		})
+	end
+end
+
+-- Start updating the status
+coroutine.wrap(UpdateStatus)()
+
+StatusTab:CreateParagraph({
+	Title = "Game Status",
+	Content = "Mirage Island: False\nKitsune Island: False\nFull Moon: False\nLegendary Sword Dealer (Second Sea): False"
+})
 
 DevilFruitTab:CreateToggle({
 	Name = "Auto Random Fruit",
@@ -169,7 +264,4 @@ DevilFruitTab:CreateToggle({
 	Name = "Auto Store Fruit",
 	CurrentValue = false,
 	Flag = "AutoStoreFruit",
-	Callback = function(Value)
-		-- Auto store logic
-	end,
-})
+	Callback = function
