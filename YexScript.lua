@@ -1,215 +1,204 @@
-local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+-- // Loader
+local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/AikaV3rm/Rayfield/main/source'))()
 
 local Window = Rayfield:CreateWindow({
-    Name = "YexScript Hub | Blox Fruits",
-    LoadingTitle = "YexScript Hub",
-    LoadingSubtitle = "by Yex",
-    ConfigurationSaving = {
-        Enabled = true,
-        FolderName = "YexScriptHub",
-        FileName = "YexScriptConfig"
-    },
-    Discord = {
-        Enabled = true,
-        Invite = "gAJSCezt", -- Correct invite
-        RememberJoins = true
-    },
-    KeySystem = true,
-    KeySettings = {
-        Title = "YexScript Key System",
-        Subtitle = "Join Discord: discord.gg/gAJSCezt",
-        Note = "Join our Discord server to get the key!",
-        FileName = "YexScriptKey",
-        SaveKey = true,
-        GrabKeyFromSite = false,
-        Key = {"YexScript145"}
-    }
+   Name = "YexScript HUB",
+   LoadingTitle = "YexScript HUB Loading...",
+   LoadingSubtitle = "discord.gg/gAJSCeZT",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "YexScriptHub",
+      FileName = "Settings"
+   },
+   Discord = {
+      Enabled = true,
+      Invite = "gAJSCeZT",
+      RememberJoins = true
+   },
+   KeySystem = true,
+   KeySettings = {
+      Title = "YexScript HUB",
+      Subtitle = "discord.gg/gAJSCeZT",
+      Note = "Join discord server to get key!",
+      FileName = "YexScriptKey",
+      SaveKey = true,
+      GrabKeyFromSite = false,
+      Key = {"YexScript145"}
+   }
 })
 
--- Notify if the key is correct or incorrect
-Rayfield:OnKeyReceived(function(Key)
-    if Key == "YexScript145" then
-        Rayfield:Notify({
-            Title = "YexScript HUB",
-            Content = "Successfully Executed!",
-            Duration = 5
-        })
-    else
-        Rayfield:Notify({
-            Title = "YexScript HUB",
-            Content = "Wrong key, join discord server!",
-            Duration = 5
-        })
-    end
-end)
+-- Notification after Key
+Rayfield:Notify({
+   Title = "YexScript HUB",
+   Content = "Successfully executed!",
+   Duration = 6.5,
+   Image = nil,
+   Actions = {Ignore = {Name = "Okay", Callback = function() end}}
+})
 
-local attackSpeed = 0.16 -- Default Attack Speed
-
+-- // Main Tab
 local MainTab = Window:CreateTab("Main", 4483362458)
 
-local ToggleFarm = MainTab:CreateToggle({
-    Name = "Auto Farm Level",
-    CurrentValue = false,
-    Callback = function(Value)
-        _G.AutoFarm = Value
-        while _G.AutoFarm do
-            pcall(function()
-                local level = game.Players.LocalPlayer.Data.Level.Value
-                -- Auto Quest + Kill NPC logic here
-            end)
-            wait(1)
-        end
-    end
+local SelectedWeapon = "Melee"
+local AttackSpeed = 0.3
+local AutoFarm = false
+
+MainTab:CreateDropdown({
+   Name = "Select Weapon",
+   Options = {"Melee", "Sword", "Gun", "Fruit"},
+   CurrentOption = "Melee",
+   Callback = function(Value)
+      SelectedWeapon = Value
+   end,
 })
 
-local AttackSpeedDropdown = MainTab:CreateDropdown({
-    Name = "Attack Speed",
-    Options = {"Normal (6/sec)", "Fast (8/sec)", "Super Fast (10/sec)"},
-    CurrentOption = "Normal (6/sec)",
-    Callback = function(Option)
-        if Option == "Normal (6/sec)" then
-            attackSpeed = 0.16
-        elseif Option == "Fast (8/sec)" then
-            attackSpeed = 0.12
-        elseif Option == "Super Fast (10/sec)" then
-            attackSpeed = 0.1
-        end
-    end
+MainTab:CreateSlider({
+   Name = "Attack Speed",
+   Range = {0.1, 1},
+   Increment = 0.05,
+   Suffix = "s",
+   CurrentValue = 0.3,
+   Callback = function(Value)
+      AttackSpeed = Value
+   end,
 })
 
-local WeaponSelector = MainTab:CreateDropdown({
-    Name = "Select Weapon",
-    Options = {"Melee", "Sword", "Gun", "Fruit"},
-    CurrentOption = "Melee",
-    Callback = function(Value)
-        _G.SelectedWeapon = Value
-    end
+MainTab:CreateToggle({
+   Name = "Auto Farm Level",
+   CurrentValue = false,
+   Callback = function(Value)
+      AutoFarm = Value
+      while AutoFarm do
+         pcall(function()
+            local player = game.Players.LocalPlayer
+            local level = player.Data.Level.Value
+            -- Farming logic (quest, teleport, kill NPCs)
+            -- Insert your island detection, quest taking, teleport, and combat here based on level
+         end)
+         task.wait(AttackSpeed)
+      end
+   end,
 })
 
-local DevilFruitTab = Window:CreateTab("Devil Fruit", 4483362458)
-
-DevilFruitTab:CreateButton({
-    Name = "Auto Teleport To Fruit (Spawned)",
-    Callback = function()
-        -- Teleport Tween to Fruit Logic
-    end
-})
-
-DevilFruitTab:CreateButton({
-    Name = "Auto Grab Dropped Fruit (Bypass)",
-    Callback = function()
-        -- Auto grab dropped fruits bypass logic
-    end
-})
-
-DevilFruitTab:CreateButton({
-    Name = "Auto Store Fruit",
-    Callback = function()
-        -- Auto Store Fruit
-    end
-})
-
-DevilFruitTab:CreateButton({
-    Name = "Auto Random Fruit",
-    Callback = function()
-        -- Auto Random Fruit
-    end
-})
-
+-- // Teleport Tab
 local TeleportTab = Window:CreateTab("Teleport", 4483362458)
 
-TeleportTab:CreateButton({
-    Name = "Teleport to Starter Island",
-    Callback = function()
-        -- Teleport Logic
-    end
-})
+TeleportTab:CreateButton({Name = "Teleport to First Sea", Callback = function() end})
+TeleportTab:CreateButton({Name = "Teleport to Second Sea", Callback = function() end})
+TeleportTab:CreateButton({Name = "Teleport to Third Sea", Callback = function() end})
+-- Add all island teleport buttons
 
-TeleportTab:CreateButton({
-    Name = "Teleport to Jungle",
-    Callback = function()
-        -- Teleport Logic
-    end
-})
+-- // ESP Tab
+local ESPTab = Window:CreateTab("ESP", 4483362458)
 
+ESPTab:CreateToggle({Name = "Fruit ESP", CurrentValue = false, Callback = function(Value) end})
+ESPTab:CreateToggle({Name = "Flower ESP", CurrentValue = false, Callback = function(Value) end})
+
+-- // Misc Tab
 local MiscTab = Window:CreateTab("Misc", 4483362458)
 
 MiscTab:CreateSlider({
-    Name = "Farm Distance",
-    Range = {5, 35},
-    Increment = 1,
-    CurrentValue = 15,
-    Callback = function(Value)
-        _G.FarmDistance = Value
-    end
+   Name = "Farm Distance",
+   Range = {5, 35},
+   Increment = 1,
+   CurrentValue = 20,
+   Callback = function(Value) end,
 })
 
 MiscTab:CreateSlider({
-    Name = "Tween Speed",
-    Range = {1, 300},
-    Increment = 1,
-    CurrentValue = 150,
-    Callback = function(Value)
-        _G.TweenSpeed = Value
-    end
+   Name = "Tween Speed",
+   Range = {50, 300},
+   Increment = 10,
+   CurrentValue = 150,
+   Callback = function(Value) end,
 })
 
 MiscTab:CreateSlider({
-    Name = "Bring Mob Distance",
-    Range = {10, 300},
-    Increment = 5,
-    CurrentValue = 100,
-    Callback = function(Value)
-        _G.BringMobDistance = Value
-    end
+   Name = "Walk Speed",
+   Range = {16, 120},
+   Increment = 1,
+   CurrentValue = 16,
+   Callback = function(Value)
+      game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
+   end,
 })
 
+-- // Status Tab
 local StatusTab = Window:CreateTab("Status", 4483362458)
 
-StatusTab:CreateParagraph({
-    Title = "Real-Time Status",
-    Content = "Mirage: Checking...\nKitsune Island: Checking...\nFull Moon: Checking...\nSword Dealer: Checking..."
-})
+local MirageLabel = StatusTab:CreateParagraph({Title = "Mirage Island", Content = "Checking..."})
+local KitsuneLabel = StatusTab:CreateParagraph({Title = "Kitsune Island", Content = "Checking..."})
+local FullMoonLabel = StatusTab:CreateParagraph({Title = "Full Moon", Content = "Checking..."})
+local SwordDealerLabel = StatusTab:CreateParagraph({Title = "Legendary Sword Dealer", Content = "Checking..."})
 
-spawn(function()
-    while true do
-        -- Real-time check logic
-        wait(5)
-    end
+task.spawn(function()
+   while task.wait(3) do
+      -- Insert real-time check logic here for Mirage, Kitsune, Full Moon, Dealer
+   end
 end)
 
-local SettingsTab = Window:CreateTab("Settings", 4483362458)
+-- // Devil Fruit Tab
+local FruitTab = Window:CreateTab("Devil Fruit", 4483362458)
 
-SettingsTab:CreateButton({
-    Name = "Rejoin Server",
-    Callback = function()
-        game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId)
-    end
+FruitTab:CreateToggle({
+   Name = "Auto Random Fruit",
+   CurrentValue = false,
+   Callback = function(Value)
+      if Value then
+         -- Insert random fruit buy logic
+      end
+   end,
 })
 
-SettingsTab:CreateButton({
-    Name = "Server Hop",
-    Callback = function()
-        -- Server Hop logic
-    end
+FruitTab:CreateToggle({
+   Name = "Auto Store Fruit",
+   CurrentValue = false,
+   Callback = function(Value)
+      if Value then
+         -- Insert auto store logic
+      end
+   end,
 })
 
-SettingsTab:CreateInput({
-    Name = "Join Job ID",
-    PlaceholderText = "Enter Job ID",
-    RemoveTextAfterFocusLost = false,
-    Callback = function(Value)
-        game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, Value)
-    end
+FruitTab:CreateToggle({
+   Name = "Auto Grab Spawned/Dropped Fruit",
+   CurrentValue = false,
+   Callback = function(Value)
+      if Value then
+         -- Tween to fruit if spawned, teleport if dropped
+      end
+   end,
 })
 
-SettingsTab:CreateButton({
-    Name = "Join Discord",
-    Callback = function()
-        Rayfield:Notify({
-            Title = "Discord Join",
-            Content = "Join Discord: discord.gg/gAJSCezt",
-            Duration = 5
-        })
-    end
+-- // Settings Tab
+local SettingTab = Window:CreateTab("Settings", 4483362458)
+
+SettingTab:CreateInput({
+   Name = "Teleport to Job ID",
+   PlaceholderText = "Enter Job ID",
+   RemoveTextAfterFocusLost = true,
+   Callback = function(Value)
+      game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, Value)
+   end,
+})
+
+SettingTab:CreateButton({
+   Name = "Rejoin Server",
+   Callback = function()
+      game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer)
+   end,
+})
+
+SettingTab:CreateButton({
+   Name = "Server Hop",
+   Callback = function()
+      -- Insert server hop logic
+   end,
+})
+
+SettingTab:CreateButton({
+   Name = "Join Discord Server",
+   Callback = function()
+      -- This depends on executor
+   end,
 })
