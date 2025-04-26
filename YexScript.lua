@@ -1,201 +1,181 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
-local discordLink = "https://discord.gg/gAJSCeZT"
-local requiredKey = "YexPogi"
-
--- Create the window with Rayfield
-local window = Rayfield:CreateWindow({
-    Name = "YexScript HUB",
-    LoadingTitle = "YexScript Hub Loading",
-    LoadingSubtitle = "Please wait...",
-    ConfigurationSaving = {
-        Enabled = true,
-        FolderName = "YexScript",
-        FileName = "Settings"
-    },
-    Discord = {
-        Enabled = true,
-        Invite = discordLink,
-        Version = "1.0.0"
-    },
+local Window = Rayfield:CreateWindow({
+Name = "YexScript Hub",
+Icon = 0,
+LoadingTitle = "YexScript Hub",
+LoadingSubtitle = "by Yex",
+Theme = "Dark",
+DisableRayfieldPrompts = false,
+DisableBuildWarnings = false,
+ConfigurationSaving = {
+Enabled = true,
+FolderName = nil,
+FileName = "YexScriptConfig"
+},
+Discord = {
+Enabled = true,
+Invite = "https://discord.gg/gAJSCeZT",
+RememberJoins = true
+},
+KeySystem = true,
+KeySettings = {
+Title = "Access Key",
+Subtitle = "Key System",
+Note = "Join our Discord server and get the key",
+FileName = "YexScriptKey",
+SaveKey = true,
+GrabKeyFromSite = false,
+Key = {"YexScript145"}
+}
 })
 
-local function keyCheck()
-    -- Create Key input system
-    local keyInput = Rayfield:CreateInput({
-        Name = "Enter Key",
-        PlaceholderText = "Join our Discord for the Key",
-        RemoveTextAfterFocus = true,
-        DefaultText = "",
-        TextColor = Color3.fromRGB(255, 255, 255),
-        TextSize = 14,
-        FocusTextColor = Color3.fromRGB(0, 255, 0),
-    })
-    
-    Rayfield:CreateButton({
-        Name = "Submit Key",
-        Callback = function()
-            if keyInput.Text == requiredKey then
-                Rayfield:Notify({
-                    Title = "YexScript HUB",
-                    Content = "Successful Execution!",
-                    Duration = 5
-                })
-                loadMainScript()
-            else
-                Rayfield:Notify({
-                    Title = "Invalid Key",
-                    Content = "The key you entered is incorrect. Please join the Discord and get the correct key.",
-                    Duration = 5
-                })
-            end
-        end
-    })
+local MainTab = Window:CreateTab("Main", 4483362458)
+
+local AttackSpeed = MainTab:CreateDropdown("Select Attack Speed", {"Normal (6/s)", "Fast (8/s)", "Super Fast (10/s)"}, function(selected)
+if selected == "Normal (6/s)" then
+attackSpeed = 6
+elseif selected == "Fast (8/s)" then
+attackSpeed = 8
+elseif selected == "Super Fast (10/s)" then
+attackSpeed = 10
+end
+end)
+
+local WeaponSelector = MainTab:CreateDropdown("Select Weapon", {"Melee", "Sword", "Gun", "Fruit"}, function(selected)
+selectedWeapon = selected
+end)
+
+local AutoFarmToggle = MainTab:CreateToggle("Auto Farm", false, function(state)
+autoFarmEnabled = state
+if autoFarmEnabled then
+AutoFarmLogic()
+end
+end)
+
+local SettingsTab = Window:CreateTab("Settings", 4483362459)
+
+SettingsTab:CreateButton("Rejoin Server", function()
+game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId)
+end)
+
+SettingsTab:CreateButton("Server Hop", function()
+local TeleportService = game:GetService("TeleportService")
+TeleportService:Teleport(game.PlaceId)
+end)
+
+SettingsTab:CreateButton("Join Discord", function()
+setclipboard("https://discord.gg/gAJSCeZT")
+Rayfield:Notify({
+Title = "Link Copied",
+Content = "Join the Discord Server: https://discord.gg/gAJSCeZT",
+Duration = 5
+})
+end)
+
+local MiscTab = Window:CreateTab("Misc", 4483362460)
+
+MiscTab:CreateSlider("Farm Distance", {min = 1, max = 35, default = 10, precise = true}, function(value)
+farmDistance = value
+end)
+
+MiscTab:CreateSlider("Tween Speed", {min = 1, max = 300, default = 50, precise = true}, function(value)
+tweenSpeed = value
+end)
+
+MiscTab:CreateSlider("Bring Mob Distance", {min = 1, max = 300, default = 10, precise = true}, function(value)
+bringMobDistance = value
+end)
+
+MiscTab:CreateSlider("Walk Speed", {min = 1, max = 200, default = 16, precise = true}, function(value)
+walkSpeed = value
+game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = value
+end)
+
+local DevilFruitTab = Window:CreateTab("Devil Fruit", 4483362461)
+
+DevilFruitTab:CreateButton("Auto Random Fruit", function()
+end)
+
+DevilFruitTab:CreateButton("Auto Store Fruit", function()
+end)
+
+DevilFruitTab:CreateButton("Auto Teleport to Fruit", function()
+end)
+
+function AutoFarmLogic()
+while autoFarmEnabled do
+local playerLevel = game.Players.LocalPlayer.Data.Level.Value
+local questAvailable = nil
+local questNPC = nil
+local questMobs = nil
+
+if playerLevel <= 10 then
+questAvailable = "Quest1"
+questNPC = game.Workspace.Quest1NPC
+questMobs = game.Workspace.Mobs.Quest1Mobs
+elseif playerLevel <= 50 then
+questAvailable = "Quest2"
+questNPC = game.Workspace.Quest2NPC
+questMobs = game.Workspace.Mobs.Quest2Mobs
+elseif playerLevel <= 100 then
+questAvailable = "Quest3"
+questNPC = game.Workspace.Quest3NPC
+questMobs = game.Workspace.Mobs.Quest3Mobs
+else
+questAvailable = "Quest4"
+questNPC = game.Workspace.Quest4NPC
+questMobs = game.Workspace.Mobs.Quest4Mobs
 end
 
-local function loadMainScript()
-    -- Create tabs
-    local mainTab = window:CreateTab("Main", 4483362458)
-    local teleportTab = window:CreateTab("Teleport", 4483362458)
-    local autoFarmTab = window:CreateTab("Auto Farm", 4483362458)
-    local statusTab = window:CreateTab("Status", 4483362458)
-    
-    local islandNames = {
-        "Starter Island", "Jungle Island", "Pirate Village", "Desert", "Middle Town", "Frozen Village", 
-        "Marine Fortress", "SkyLands", "Prison", "Colloseum", "Magma village", "Underwater city", "Fountain city",
-        "Kingdom of Rose", "Ussop island", "Cafe", "Don swan mansion", "Green Zone", "GraveYard", "Snow mountain", 
-        "Hot and cold", "Cursed ship", "Ice Castle", "Forgotten island", "Dark Arena",
-        "Port Town", "Hydra Island", "Great tree", "Floating turtle", "Castle on the sea", "Hunted castle", 
-        "Sea of treats", "Tiki outpost"
-    }
+if questAvailable and questNPC then
+pcall(function()
+game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = questNPC.HumanoidRootPart.CFrame
+fireclickdetector(questNPC.ClickDetector)
+end)
 
-    -- Teleport Dropdown
-    local teleportDropDown = teleportTab:CreateDropdown({
-        Name = "Select Island",
-        Options = islandNames,
-        Callback = function(option)
-            Rayfield:Notify({
-                Title = "Teleporting",
-                Content = "Teleporting to " .. option,
-                Duration = 3
-            })
-            -- Teleport logic based on the selected island
-            -- Implement teleporting logic here
-        end
-    })
-
-    -- Attack Speed Dropdown
-    local attackSpeedDropDown = mainTab:CreateDropdown({
-        Name = "Select Attack Speed",
-        Options = {"Normal (6/s)", "Fast (8/s)", "Super Fast (10/s)"},
-        Callback = function(option)
-            if option == "Normal (6/s)" then
-                -- Set to normal speed logic
-            elseif option == "Fast (8/s)" then
-                -- Set to fast speed logic
-            elseif option == "Super Fast (10/s)" then
-                -- Set to super fast speed logic
-            end
-        end
-    })
-
-    -- Auto-Farm Toggle
-    local autoFarmToggle = autoFarmTab:CreateToggle({
-        Name = "Auto Farm",
-        Default = false,
-        Callback = function(state)
-            if state then
-                Rayfield:Notify({
-                    Title = "Auto Farm",
-                    Content = "Auto farm enabled!",
-                    Duration = 3
-                })
-                startAutoFarm()
-            else
-                Rayfield:Notify({
-                    Title = "Auto Farm",
-                    Content = "Auto farm disabled.",
-                    Duration = 3
-                })
-                stopAutoFarm()
-            end
-        end
-    })
-    
-    -- Auto Farm Logic
-    local function startAutoFarm()
-        local playerLevel = game.Players.LocalPlayer.Data.Level.Value
-        local questGiver = getQuestGiverForLevel(playerLevel)
-        
-        -- Logic to take the quest based on player level
-        takeQuest(questGiver)
-        
-        -- Killing NPCs using selected attack method (Auto Attack)
-        while autoFarmToggle.Enabled do
-            -- Find and attack NPCs based on level and quest requirements
-            local npcs = game.Workspace:FindPartsInRegion3(workspace.CurrentCamera.CFrame.Position, Vector3.new(50, 50, 50), nil)
-            for _, npc in pairs(npcs) do
-                if npc:IsA("Model") and npc:FindFirstChild("Humanoid") then
-                    npc.Humanoid:TakeDamage(9999) -- Modify damage as needed
-                end
-            end
-            wait(1)
-        end
-    end
-    
-    -- Stop Auto-Farm
-    local function stopAutoFarm()
-        -- Stop farming logic here
-    end
-    
-    -- Take Quest Function
-    local function takeQuest(questGiver)
-        -- Quest taking logic based on the quest giver
-        if questGiver then
-            questGiver.Talk:Fire()
-        end
-    end
-    
-    -- Real-Time Status Update
-    local function updateStatus()
-        local statusLabel = statusTab:CreateLabel({
-            Name = "Status",
-            Content = "Mirage Island: Checking... | Kitsune Island: Checking... | Full Moon: Checking..."
-        })
-
-        while true do
-            local mirageIslandStatus = "Not Available"
-            local kitsuneIslandStatus = "Not Available"
-            local fullMoonStatus = "Not Full Moon"
-            local legendarySwordDealer = "Not Available"
-            
-            if game.Workspace:FindFirstChild("Mirage Island") then
-                mirageIslandStatus = "Available"
-            end
-            if game.Workspace:FindFirstChild("Kitsune Island") then
-                kitsuneIslandStatus = "Available"
-            end
-            if game.Workspace:FindFirstChild("Full Moon") then
-                fullMoonStatus = "Full Moon"
-            end
-            if game.Workspace:FindFirstChild("Legendary Sword Dealer") then
-                legendarySwordDealer = "Available"
-            end
-
-            statusLabel:SetContent("Mirage Island: " .. mirageIslandStatus .. " | Kitsune Island: " .. kitsuneIslandStatus .. " | Full Moon: " .. fullMoonStatus)
-
-            Rayfield:Notify({
-                Title = "Legendary Sword Dealer",
-                Content = "Legendary Sword Dealer: " .. legendarySwordDealer,
-                Duration = 5
-            })
-
-            wait(5)
-        end
-    end
-    
-    updateStatus()
+for _, mob in pairs(questMobs:GetChildren()) do
+if mob and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+pcall(function()
+game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0, farmDistance, 0)
+repeat wait(1/attackSpeed)
+if selectedWeapon == "Melee" or selectedWeapon == "Sword" or selectedWeapon == "Gun" or selectedWeapon == "Fruit" then
+local tool = game.Players.LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
+if tool then
+tool.Parent = game.Players.LocalPlayer.Character
+tool:Activate()
+end
+end
+until mob.Humanoid.Health <= 0 or not autoFarmEnabled
+end)
+end
+end
+else
+Rayfield:Notify({
+Title = "No Quest Available",
+Content = "No quest found for your level.",
+Duration = 5
+})
+end
+wait(1)
+end
 end
 
--- Start key check
-keyCheck()
+local KeySystem = function()
+local key = Rayfield:RequestKey()
+if key == "YexScript145" then
+Rayfield:Notify({
+Title = "Key Valid",
+Content = "YexScript Hub Loaded!",
+Duration = 5
+})
+else
+Rayfield:Notify({
+Title = "Invalid Key",
+Content = "Wrong Key!",
+Duration = 5
+})
+end
+end
+
+KeySystem()
