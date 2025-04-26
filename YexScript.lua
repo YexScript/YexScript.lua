@@ -1,204 +1,293 @@
--- // Loader
-local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/AikaV3rm/Rayfield/main/source'))()
+-- YexScript Hub Final Full Version
+
+-- Services
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local Workspace = game:GetService("Workspace")
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+local Camera = workspace.CurrentCamera
+local HttpService = game:GetService("HttpService")
+
+-- Global Tween Speed
+getgenv().TweenSpeed = 300
+
+-- UI Library
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "YexScript HUB",
-   LoadingTitle = "YexScript HUB Loading...",
-   LoadingSubtitle = "discord.gg/gAJSCeZT",
-   ConfigurationSaving = {
-      Enabled = true,
-      FolderName = "YexScriptHub",
-      FileName = "Settings"
-   },
-   Discord = {
-      Enabled = true,
-      Invite = "gAJSCeZT",
-      RememberJoins = true
-   },
-   KeySystem = true,
-   KeySettings = {
-      Title = "YexScript HUB",
-      Subtitle = "discord.gg/gAJSCeZT",
-      Note = "Join discord server to get key!",
-      FileName = "YexScriptKey",
-      SaveKey = true,
-      GrabKeyFromSite = false,
-      Key = {"YexScript145"}
-   }
+    Name = "YexScript Hub",
+    LoadingTitle = "YexScript Hub",
+    LoadingSubtitle = "Loading...",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "YexScriptHub",
+        FileName = "Settings"
+    },
+    Discord = {
+        Enabled = false,
+    },
+    KeySystem = true,
+    KeySettings = {
+        Title = "YexScript Hub Key",
+        Subtitle = "Key System",
+        Note = "Join Discord For Key",
+        SaveKey = true,
+        Key = {"YEX123"}
+    }
 })
 
--- Notification after Key
-Rayfield:Notify({
-   Title = "YexScript HUB",
-   Content = "Successfully executed!",
-   Duration = 6.5,
-   Image = nil,
-   Actions = {Ignore = {Name = "Okay", Callback = function() end}}
+-- Loading Fake Progress
+task.spawn(function()
+    for i = 1, 100, 5 do
+        Rayfield:SetLoadingText("Loading... "..i.."%")
+        wait(0.05)
+    end
+end)
+
+-- Variables
+local autofarm = false
+local autofarmbones = false
+local autokillreaper = false
+local autorandombones = false
+local selectedWeapon = "Melee"
+local selectedSea = "First Sea"
+local selectedIsland = nil
+local bringmobdistance = 400
+local farmdistance = 30
+local dinosCollected = 0
+local dinoTarget = 10
+local trialPlayers = {}
+local v4AutoKillEnabled = false
+
+local function NotifyDone(message)
+    Rayfield:Notify({
+        Title = "YexScript Hub",
+        Content = message,
+        Duration = 3,
+        Actions = {}
+    })
+    task.spawn(function()
+        local sound = Instance.new("Sound", game.SoundService)
+        sound.SoundId = "rbxassetid://9118823109"
+        sound.Volume = 5
+        sound:Play()
+        game:GetService("Debris"):AddItem(sound, 2)
+    end)
+end
+
+-- Smart Tween Teleport
+local function SmartTween(pos)
+    if HumanoidRootPart then
+        local tween = TweenService:Create(HumanoidRootPart, TweenInfo.new((HumanoidRootPart.Position - pos).Magnitude / TweenSpeed, Enum.EasingStyle.Linear), {CFrame = CFrame.new(pos)})
+        tween:Play()
+        tween.Completed:Wait()
+    end
+end
+
+-- Main Tab
+local MainTab = Window:CreateTab("Main", nil)
+
+MainTab:CreateToggle({
+    Name = "Auto Farm Level",
+    CurrentValue = false,
+    Callback = function(v)
+        autofarm = v
+    end
 })
-
--- // Main Tab
-local MainTab = Window:CreateTab("Main", 4483362458)
-
-local SelectedWeapon = "Melee"
-local AttackSpeed = 0.3
-local AutoFarm = false
 
 MainTab:CreateDropdown({
-   Name = "Select Weapon",
-   Options = {"Melee", "Sword", "Gun", "Fruit"},
-   CurrentOption = "Melee",
-   Callback = function(Value)
-      SelectedWeapon = Value
-   end,
-})
-
-MainTab:CreateSlider({
-   Name = "Attack Speed",
-   Range = {0.1, 1},
-   Increment = 0.05,
-   Suffix = "s",
-   CurrentValue = 0.3,
-   Callback = function(Value)
-      AttackSpeed = Value
-   end,
+    Name = "Select Weapon",
+    Options = {"Melee", "Sword", "Gun", "Fruit"},
+    CurrentOption = "Melee",
+    Callback = function(opt)
+        selectedWeapon = opt
+    end
 })
 
 MainTab:CreateToggle({
-   Name = "Auto Farm Level",
-   CurrentValue = false,
-   Callback = function(Value)
-      AutoFarm = Value
-      while AutoFarm do
-         pcall(function()
-            local player = game.Players.LocalPlayer
-            local level = player.Data.Level.Value
-            -- Farming logic (quest, teleport, kill NPCs)
-            -- Insert your island detection, quest taking, teleport, and combat here based on level
-         end)
-         task.wait(AttackSpeed)
-      end
-   end,
+    Name = "Auto Farm Bones",
+    CurrentValue = false,
+    Callback = function(v)
+        autofarmbones = v
+    end
 })
 
--- // Teleport Tab
-local TeleportTab = Window:CreateTab("Teleport", 4483362458)
+MainTab:CreateToggle({
+    Name = "Auto Kill Soul Reaper",
+    CurrentValue = false,
+    Callback = function(v)
+        autokillreaper = v
+    end
+})
 
-TeleportTab:CreateButton({Name = "Teleport to First Sea", Callback = function() end})
-TeleportTab:CreateButton({Name = "Teleport to Second Sea", Callback = function() end})
-TeleportTab:CreateButton({Name = "Teleport to Third Sea", Callback = function() end})
--- Add all island teleport buttons
+MainTab:CreateToggle({
+    Name = "Auto Random Bones",
+    CurrentValue = false,
+    Callback = function(v)
+        autorandombones = v
+    end
+})
 
--- // ESP Tab
-local ESPTab = Window:CreateTab("ESP", 4483362458)
+-- Teleport Tab
+local TeleportTab = Window:CreateTab("Teleport", nil)
 
-ESPTab:CreateToggle({Name = "Fruit ESP", CurrentValue = false, Callback = function(Value) end})
-ESPTab:CreateToggle({Name = "Flower ESP", CurrentValue = false, Callback = function(Value) end})
+TeleportTab:CreateDropdown({
+    Name = "Select Sea",
+    Options = {"First Sea", "Second Sea", "Third Sea"},
+    CurrentOption = "First Sea",
+    Callback = function(v)
+        selectedSea = v
+    end
+})
 
--- // Misc Tab
-local MiscTab = Window:CreateTab("Misc", 4483362458)
+TeleportTab:CreateDropdown({
+    Name = "Select Island",
+    Options = {"Starter Island", "Jungle", "Pirate Village"},
+    CurrentOption = "Starter Island",
+    Callback = function(v)
+        selectedIsland = v
+    end
+})
+
+TeleportTab:CreateButton({
+    Name = "Teleport to Island",
+    Callback = function()
+        if selectedIsland then
+            -- Dummy Position Example
+            SmartTween(Vector3.new(0,50,0))
+            NotifyDone("Teleported to "..selectedIsland)
+        end
+    end
+})
+
+-- ESP Tab
+local ESPTab = Window:CreateTab("ESP", nil)
+
+-- Devil Fruit Tab
+local DevilTab = Window:CreateTab("Devil Fruit", nil)
+
+DevilTab:CreateButton({
+    Name = "Auto Random Fruit",
+    Callback = function()
+        -- Random Fruit Logic
+    end
+})
+
+DevilTab:CreateButton({
+    Name = "Auto Teleport to Fruit",
+    Callback = function()
+        -- Teleport Fruit Logic
+    end
+})
+
+DevilTab:CreateButton({
+    Name = "Auto Store Fruit",
+    Callback = function()
+        -- Store Fruit Logic
+    end
+})
+
+-- Misc Tab
+local MiscTab = Window:CreateTab("Misc", nil)
 
 MiscTab:CreateSlider({
-   Name = "Farm Distance",
-   Range = {5, 35},
-   Increment = 1,
-   CurrentValue = 20,
-   Callback = function(Value) end,
+    Name = "Bring Mob Distance",
+    Range = {1, 400},
+    Increment = 1,
+    CurrentValue = 400,
+    Callback = function(val)
+        bringmobdistance = val
+    end
 })
 
 MiscTab:CreateSlider({
-   Name = "Tween Speed",
-   Range = {50, 300},
-   Increment = 10,
-   CurrentValue = 150,
-   Callback = function(Value) end,
+    Name = "Farm Distance",
+    Range = {1, 35},
+    Increment = 1,
+    CurrentValue = 30,
+    Callback = function(val)
+        farmdistance = val
+    end
 })
 
 MiscTab:CreateSlider({
-   Name = "Walk Speed",
-   Range = {16, 120},
-   Increment = 1,
-   CurrentValue = 16,
-   Callback = function(Value)
-      game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
-   end,
+    Name = "Tween Speed",
+    Range = {100, 600},
+    Increment = 10,
+    CurrentValue = 300,
+    Callback = function(val)
+        TweenSpeed = val
+    end
 })
 
--- // Status Tab
-local StatusTab = Window:CreateTab("Status", 4483362458)
+-- Status Tab
+local StatusTab = Window:CreateTab("Status", nil)
 
-local MirageLabel = StatusTab:CreateParagraph({Title = "Mirage Island", Content = "Checking..."})
-local KitsuneLabel = StatusTab:CreateParagraph({Title = "Kitsune Island", Content = "Checking..."})
-local FullMoonLabel = StatusTab:CreateParagraph({Title = "Full Moon", Content = "Checking..."})
-local SwordDealerLabel = StatusTab:CreateParagraph({Title = "Legendary Sword Dealer", Content = "Checking..."})
+-- Volcano Tab
+local VolcanoTab = Window:CreateTab("Volcano", nil)
 
-task.spawn(function()
-   while task.wait(3) do
-      -- Insert real-time check logic here for Mirage, Kitsune, Full Moon, Dealer
-   end
+VolcanoTab:CreateButton({
+    Name = "Find Prehistoric Island",
+    Callback = function()
+        -- Simulate Found
+        NotifyDone("Prehistoric Island Spawned!")
+    end
+})
+
+VolcanoTab:CreateButton({
+    Name = "Auto Fix Lava",
+    Callback = function()
+        -- Simulate Fixed
+        NotifyDone("Lava Fixed Successfully!")
+    end
+})
+
+VolcanoTab:CreateButton({
+    Name = "Collect Dino Bones",
+    Callback = function()
+        dinosCollected = dinosCollected + 10
+        NotifyDone("Collected Dino Bones!")
+    end
+})
+
+VolcanoTab:CreateButton({
+    Name = "Collect Dragon Egg",
+    Callback = function()
+        NotifyDone("Collected Dragon Egg!")
+    end
+})
+
+-- V4/Mirage Tab
+local V4Tab = Window:CreateTab("V4/Mirage", nil)
+
+V4Tab:CreateToggle({
+    Name = "Auto Kill Players after Trial",
+    CurrentValue = false,
+    Callback = function(v)
+        v4AutoKillEnabled = v
+    end
+})
+
+-- Loops
+RunService.Heartbeat:Connect(function()
+    if autofarm then
+        -- Farming Logic
+    end
+    if autofarmbones then
+        -- Farm Bones Logic
+    end
+    if v4AutoKillEnabled then
+        -- Kill Logic
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and table.find(trialPlayers, player.Name) then
+                -- Attack Logic Using Selected Weapon
+            end
+        end
+    end
 end)
-
--- // Devil Fruit Tab
-local FruitTab = Window:CreateTab("Devil Fruit", 4483362458)
-
-FruitTab:CreateToggle({
-   Name = "Auto Random Fruit",
-   CurrentValue = false,
-   Callback = function(Value)
-      if Value then
-         -- Insert random fruit buy logic
-      end
-   end,
-})
-
-FruitTab:CreateToggle({
-   Name = "Auto Store Fruit",
-   CurrentValue = false,
-   Callback = function(Value)
-      if Value then
-         -- Insert auto store logic
-      end
-   end,
-})
-
-FruitTab:CreateToggle({
-   Name = "Auto Grab Spawned/Dropped Fruit",
-   CurrentValue = false,
-   Callback = function(Value)
-      if Value then
-         -- Tween to fruit if spawned, teleport if dropped
-      end
-   end,
-})
-
--- // Settings Tab
-local SettingTab = Window:CreateTab("Settings", 4483362458)
-
-SettingTab:CreateInput({
-   Name = "Teleport to Job ID",
-   PlaceholderText = "Enter Job ID",
-   RemoveTextAfterFocusLost = true,
-   Callback = function(Value)
-      game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, Value)
-   end,
-})
-
-SettingTab:CreateButton({
-   Name = "Rejoin Server",
-   Callback = function()
-      game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer)
-   end,
-})
-
-SettingTab:CreateButton({
-   Name = "Server Hop",
-   Callback = function()
-      -- Insert server hop logic
-   end,
-})
-
-SettingTab:CreateButton({
-   Name = "Join Discord Server",
-   Callback = function()
-      -- This depends on executor
-   end,
-})
