@@ -26,6 +26,23 @@ local Window = Rayfield:CreateWindow({
     }
 })
 
+-- Notify if the key is correct or incorrect
+Rayfield:OnKeyReceived(function(Key)
+    if Key == "YexScript145" then
+        Rayfield:Notify({
+            Title = "YexScript HUB",
+            Content = "Successfully Executed!",
+            Duration = 5
+        })
+    else
+        Rayfield:Notify({
+            Title = "YexScript HUB",
+            Content = "Wrong key, join discord server!",
+            Duration = 5
+        })
+    end
+end)
+
 local attackSpeed = 0.16 -- Default Attack Speed
 
 local MainTab = Window:CreateTab("Main", 4483362458)
