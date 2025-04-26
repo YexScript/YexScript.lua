@@ -3,6 +3,7 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local discordLink = "https://discord.gg/gAJSCeZT"
 local requiredKey = "YexPogi"
 
+-- Create the window with Rayfield
 local window = Rayfield:CreateWindow({
     Name = "YexScript HUB",
     LoadingTitle = "YexScript Hub Loading",
@@ -20,6 +21,7 @@ local window = Rayfield:CreateWindow({
 })
 
 local function keyCheck()
+    -- Create Key input system
     local keyInput = Rayfield:CreateInput({
         Name = "Enter Key",
         PlaceholderText = "Join our Discord for the Key",
@@ -52,11 +54,12 @@ local function keyCheck()
 end
 
 local function loadMainScript()
+    -- Create tabs
     local mainTab = window:CreateTab("Main", 4483362458)
     local teleportTab = window:CreateTab("Teleport", 4483362458)
     local autoFarmTab = window:CreateTab("Auto Farm", 4483362458)
     local statusTab = window:CreateTab("Status", 4483362458)
-
+    
     local islandNames = {
         "Starter Island", "Jungle Island", "Pirate Village", "Desert", "Middle Town", "Frozen Village", 
         "Marine Fortress", "SkyLands", "Prison", "Colloseum", "Magma village", "Underwater city", "Fountain city",
@@ -66,6 +69,7 @@ local function loadMainScript()
         "Sea of treats", "Tiki outpost"
     }
 
+    -- Teleport Dropdown
     local teleportDropDown = teleportTab:CreateDropdown({
         Name = "Select Island",
         Options = islandNames,
@@ -79,8 +83,23 @@ local function loadMainScript()
             -- Implement teleporting logic here
         end
     })
-    
-    -- Auto-Farm Logic
+
+    -- Attack Speed Dropdown
+    local attackSpeedDropDown = mainTab:CreateDropdown({
+        Name = "Select Attack Speed",
+        Options = {"Normal (6/s)", "Fast (8/s)", "Super Fast (10/s)"},
+        Callback = function(option)
+            if option == "Normal (6/s)" then
+                -- Set to normal speed logic
+            elseif option == "Fast (8/s)" then
+                -- Set to fast speed logic
+            elseif option == "Super Fast (10/s)" then
+                -- Set to super fast speed logic
+            end
+        end
+    })
+
+    -- Auto-Farm Toggle
     local autoFarmToggle = autoFarmTab:CreateToggle({
         Name = "Auto Farm",
         Default = false,
@@ -103,21 +122,7 @@ local function loadMainScript()
         end
     })
     
-    -- Attack Speed
-    local attackSpeedDropDown = mainTab:CreateDropdown({
-        Name = "Select Attack Speed",
-        Options = {"Normal (6/s)", "Fast (8/s)", "Super Fast (10/s)"},
-        Callback = function(option)
-            if option == "Normal (6/s)" then
-                -- Set to normal speed logic
-            elseif option == "Fast (8/s)" then
-                -- Set to fast speed logic
-            elseif option == "Super Fast (10/s)" then
-                -- Set to super fast speed logic
-            end
-        end
-    })
-    
+    -- Auto Farm Logic
     local function startAutoFarm()
         local playerLevel = game.Players.LocalPlayer.Data.Level.Value
         local questGiver = getQuestGiverForLevel(playerLevel)
@@ -138,10 +143,12 @@ local function loadMainScript()
         end
     end
     
+    -- Stop Auto-Farm
     local function stopAutoFarm()
         -- Stop farming logic here
     end
     
+    -- Take Quest Function
     local function takeQuest(questGiver)
         -- Quest taking logic based on the quest giver
         if questGiver then
@@ -149,7 +156,7 @@ local function loadMainScript()
         end
     end
     
-    -- Update Status in Real-Time
+    -- Real-Time Status Update
     local function updateStatus()
         local statusLabel = statusTab:CreateLabel({
             Name = "Status",
@@ -190,4 +197,5 @@ local function loadMainScript()
     updateStatus()
 end
 
+-- Start key check
 keyCheck()
