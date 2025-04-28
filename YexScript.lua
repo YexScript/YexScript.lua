@@ -1,381 +1,233 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+--// Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local VirtualUser = game:GetService("VirtualUser")
+local LocalPlayer = Players.LocalPlayer
+local HttpService = game:GetService("HttpService")
 
-local Window = Rayfield:CreateWindow({
-   Name = "YexScript Hub",
-   LoadingTitle = "YexScript Hub Loading...",
-   LoadingSubtitle = "Please wait!",
-   ConfigurationSaving = {
-      Enabled = true,
-      FolderName = "YexScriptHub",
-      FileName = "YexScriptSettings",
-   },
-   Discord = {
-      Enabled = false,
-      Invite = "noinvitelink",
-      RememberJoins = true
-   },
-   KeySystem = true,
-   KeySettings = {
-      Title = "YexScript Hub",
-      Subtitle = "Key System",
-      Note = "Key: YexScript Hub145",
-      FileName = "YexScriptHubKey",
-      SaveKey = true,
-      GrabKeyFromSite = false,
-      Key = {"YexScript Hub145"}
-   }
-})
+--// Create ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "YexScriptHub"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-Rayfield:Notify({
-   Title = "YexScript executed",
-   Content = "Enjoy using YexScript!!",
-   Duration = 6.5,
-})
+--// Create Main Frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 650, 0, 420)
+MainFrame.Position = UDim2.new(0.5, -325, 0.5, -210)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+MainFrame.Active = true
+MainFrame.Draggable = true
 
--- Variables
-local SelectedWeapon = "Melee"
-local AutoFarmEnabled = false
-local AutoBonesEnabled = false
-local AutoKillPlayerEnabled = false
-local UseSkillWhileKilling = false
-local AutoFixLavaEnabled = false
-local AutoRaceDoorTeleport = false
-local AutoCompleteTrial = false
-local AutoMirageTeleport = false
-local AutoFindBlueGear = false
-local AutoAdvanceDealerTeleport = false
-local MoonLockEnabled = false
+--// Hub Title
+local Title = Instance.new("TextLabel")
+Title.Text = "YexScript HUB"
+Title.Size = UDim2.new(1,0,0,50)
+Title.BackgroundColor3 = Color3.fromRGB(10,10,10)
+Title.BorderSizePixel = 0
+Title.Font = Enum.Font.GothamBold
+Title.TextColor3 = Color3.fromRGB(255, 0, 0)
+Title.TextSize = 28
+Title.Parent = MainFrame
 
--- Functions (Summarized)
-function AttackNPC(npc)
-   -- smart attack logic using SelectedWeapon
+--// Tab Buttons (Left Side)
+local TabsFrame = Instance.new("Frame")
+TabsFrame.Size = UDim2.new(0,150,0,370)
+TabsFrame.Position = UDim2.new(0,0,0,50)
+TabsFrame.BackgroundColor3 = Color3.fromRGB(15,15,15)
+TabsFrame.Parent = MainFrame
+
+local TabsLayout = Instance.new("UIListLayout", TabsFrame)
+TabsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+TabsLayout.Padding = UDim.new(0,5)
+
+local Tabs = {}
+local TabsName = {
+    "Main", "Teleport", "ESP", "Misc", 
+    "Status", "Volcano", "V4/Mirage", "Settings"
+}
+
+for _,name in pairs(TabsName) do
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1,0,0,40)
+    btn.Text = name
+    btn.Font = Enum.Font.GothamBold
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.BackgroundColor3 = Color3.fromRGB(25,25,25)
+    btn.Parent = TabsFrame
+    Tabs[name] = btn
 end
 
-function TakeQuest()
-   -- smart take quest based on player level
+--// Pages (Right Side)
+local PagesFrame = Instance.new("Frame")
+PagesFrame.Size = UDim2.new(0,500,0,370)
+PagesFrame.Position = UDim2.new(0,150,0,50)
+PagesFrame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+PagesFrame.Parent = MainFrame
+
+local Pages = {}
+for _,name in pairs(TabsName) do
+    local page = Instance.new("Frame")
+    page.Name = name
+    page.Size = UDim2.new(1,0,1,0)
+    page.BackgroundTransparency = 1
+    page.Visible = false
+    page.Parent = PagesFrame
+    Pages[name] = page
+end
+Pages["Main"].Visible = true
+
+for name,button in pairs(Tabs) do
+    button.MouseButton1Click:Connect(function()
+        for _,page in pairs(Pages) do
+            page.Visible = false
+        end
+        Pages[name].Visible = true
+    end)
 end
 
-function FarmBones()
-   -- kill mobs for bones
-end
+--// Toggle GUI with "Y" Key
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.Y then
+        MainFrame.Visible = not MainFrame.Visible
+    end
+end)
 
-function SafeHover()
-   -- smart hover to avoid death
-end
+--// Loading Screen
+local LoadingGui = Instance.new("ScreenGui", game.CoreGui)
+local LoadingFrame = Instance.new("Frame", LoadingGui)
+LoadingFrame.Size = UDim2.new(0,200,0,100)
+LoadingFrame.Position = UDim2.new(0.5,-100,0.5,-50)
+LoadingFrame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+local LoadingText = Instance.new("TextLabel", LoadingFrame)
+LoadingText.Size = UDim2.new(1,0,1,0)
+LoadingText.BackgroundTransparency = 1
+LoadingText.Text = "Loading YexScript HUB..."
+LoadingText.Font = Enum.Font.GothamBold
+LoadingText.TextColor3 = Color3.new(1,1,1)
+LoadingText.TextSize = 18
+wait(2)
+LoadingGui:Destroy()
 
-function FixLava()
-   -- safe smart fix logic using skill casting all weapons
-end
+--// Key System
+local CorrectKey = "Yex123"
+local KeyGui = Instance.new("ScreenGui", game.CoreGui)
+local KeyFrame = Instance.new("Frame", KeyGui)
+KeyFrame.Size = UDim2.new(0,300,0,150)
+KeyFrame.Position = UDim2.new(0.5,-150,0.5,-75)
+KeyFrame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 
-function TeleportRaceDoor()
-   -- teleport player to their correct race door
-end
+local InputBox = Instance.new("TextBox", KeyFrame)
+InputBox.Size = UDim2.new(0.8,0,0,40)
+InputBox.Position = UDim2.new(0.1,0,0.2,0)
+InputBox.PlaceholderText = "Enter Key..."
+InputBox.Font = Enum.Font.Gotham
+InputBox.TextSize = 16
+InputBox.TextColor3 = Color3.new(1,1,1)
+InputBox.BackgroundColor3 = Color3.fromRGB(15,15,15)
 
-function CompleteRaceTrial()
-   -- auto complete the correct trial based on race
-end
+local SubmitButton = Instance.new("TextButton", KeyFrame)
+SubmitButton.Size = UDim2.new(0.8,0,0,40)
+SubmitButton.Position = UDim2.new(0.1,0,0.6,0)
+SubmitButton.Text = "Submit"
+SubmitButton.Font = Enum.Font.GothamBold
+SubmitButton.TextSize = 18
+SubmitButton.TextColor3 = Color3.new(1,1,1)
+SubmitButton.BackgroundColor3 = Color3.fromRGB(50,0,0)
 
-function KillTrialPlayers()
-   -- kill players after trial, using selected weapon, with optional skills
-end
+SubmitButton.MouseButton1Click:Connect(function()
+    if InputBox.Text == CorrectKey then
+        KeyGui:Destroy()
+        MainFrame.Visible = true
+    else
+        InputBox.Text = "Wrong Key!"
+    end
+end)
 
-function TeleportToMirage()
-   -- teleport to mirage and climb high place
-end
+MainFrame.Visible = false
 
-function LockMoon()
-   -- lock camera to moon
-end
+--// Variables
+getgenv().AutoFarmLevel = false
+getgenv().FruitESP = false
+getgenv().AutoRaid = false
+getgenv().VolcanoFarm = false
+getgenv().V4Farm = false
+FarmDistanceValue = 20
+TweenSpeed = 200
 
-function FindBlueGear()
-   -- search and teleport to blue gear
-end
+--// Main Page (Auto Farm Level)
+local AutoFarmBtn = Instance.new("TextButton", Pages["Main"])
+AutoFarmBtn.Size = UDim2.new(0,200,0,40)
+AutoFarmBtn.Position = UDim2.new(0,20,0,20)
+AutoFarmBtn.Text = "Auto Farm Level [ON/OFF]"
+AutoFarmBtn.BackgroundColor3 = Color3.fromRGB(30,30,30)
+AutoFarmBtn.TextColor3 = Color3.new(1,1,1)
+AutoFarmBtn.Font = Enum.Font.GothamBold
+AutoFarmBtn.TextSize = 14
 
-function TeleportAdvancedDealer()
-   -- teleport to advanced fruit dealer
-end
-
--- Tabs
-local MainTab = Window:CreateTab("Main", 4483362458)
-MainTab:CreateToggle({
-   Name = "Auto Farm Level",
-   CurrentValue = false,
-   Callback = function(v)
-      AutoFarmEnabled = v
-      while AutoFarmEnabled do
-         TakeQuest()
-         AttackNPC()
-         task.wait()
-      end
-   end
-})
-
-MainTab:CreateDropdown({
-   Name = "Select Weapon",
-   Options = {"Melee", "Sword", "Gun", "Fruit"},
-   CurrentOption = "Melee",
-   Callback = function(v)
-      SelectedWeapon = v
-   end
-})
-
-local VolcanoTab = Window:CreateTab("Volcano", 4483362458)
-VolcanoTab:CreateToggle({
-   Name = "Auto Fix Lava (Smart Safe)",
-   CurrentValue = false,
-   Callback = function(v)
-      AutoFixLavaEnabled = v
-      while AutoFixLavaEnabled do
-         SafeHover()
-         FixLava()
-         Rayfield:Notify({Title="Lava Fix", Content="Done Fixing Lava", Duration=5})
-         task.wait()
-      end
-   end
-})
-
-local V4Tab = Window:CreateTab("V4 / Mirage", 4483362458)
-V4Tab:CreateSection("Temple Of Time Features")
-
-V4Tab:CreateToggle({
-   Name = "Auto Teleport Race Door",
-   CurrentValue = false,
-   Callback = function(v)
-      AutoRaceDoorTeleport = v
-      while AutoRaceDoorTeleport do
-         TeleportRaceDoor()
-         task.wait(5)
-      end
-   end
-})
-
-V4Tab:CreateToggle({
-   Name = "Auto Complete Trial",
-   CurrentValue = false,
-   Callback = function(v)
-      AutoCompleteTrial = v
-      while AutoCompleteTrial do
-         CompleteRaceTrial()
-         task.wait(5)
-      end
-   end
-})
-
-V4Tab:CreateToggle({
-   Name = "Auto Kill Trial Players",
-   CurrentValue = false,
-   Callback = function(v)
-      AutoKillPlayerEnabled = v
-      while AutoKillPlayerEnabled do
-         KillTrialPlayers()
-         task.wait(2)
-      end
-   end
-})
-
-V4Tab:CreateDropdown({
-   Name = "Skill Usage for Killing Players",
-   Options = {"Yes", "No"},
-   CurrentOption = "No",
-   Callback = function(opt)
-      UseSkillWhileKilling = (opt == "Yes")
-   end
-})
-
-V4Tab:CreateSection("Mirage Island Features")
-
-V4Tab:CreateToggle({
-   Name = "Auto Teleport To Mirage",
-   CurrentValue = false,
-   Callback = function(v)
-      AutoMirageTeleport = v
-      while AutoMirageTeleport do
-         TeleportToMirage()
-         Rayfield:Notify({Title="Mirage", Content="Teleported to Mirage Island", Duration=5})
-         task.wait(10)
-      end
-   end
-})
-
-V4Tab:CreateToggle({
-   Name = "Moon Lock Camera",
-   CurrentValue = false,
-   Callback = function(v)
-      MoonLockEnabled = v
-      if v then
-         LockMoon()
-      end
-   end
-})
-
-V4Tab:CreateToggle({
-   Name = "Auto Find Blue Gear",
-   CurrentValue = false,
-   Callback = function(v)
-      AutoFindBlueGear = v
-      while AutoFindBlueGear do
-         FindBlueGear()
-         Rayfield:Notify({Title="Blue Gear", Content="Found and Teleported", Duration=5})
-         task.wait(10)
-      end
-   end
-})
-
-V4Tab:CreateToggle({
-   Name = "Teleport to Advanced Fruit Dealer",
-   CurrentValue = false,
-   Callback = function(v)
-      AutoAdvanceDealerTeleport = v
-      while AutoAdvanceDealerTeleport do
-         TeleportAdvancedDealer()
-         Rayfield:Notify({Title="Advanced Dealer", Content="Teleported", Duration=5})
-         task.wait(10)
-      end
-   end
-})
-
-local MiscTab = Window:CreateTab("Misc", 4483362458)
-MiscTab:CreateToggle({
-   Name = "Auto Farm Bones",
-   CurrentValue = false,
-   Callback = function(v)
-      AutoBonesEnabled = v
-      while AutoBonesEnabled do
-         FarmBones()
-         task.wait()
-      end
-   end
-})
-
-function AttackNPC()
-   local character = game.Players.LocalPlayer.Character
-   local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-   if not humanoid or humanoid.Health <= 0 then return end
-
-   -- Find closest enemy
-   local closest = nil
-   local shortest = math.huge
-   for _, v in pairs(workspace.Enemies:GetChildren()) do
-      if v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-         local distance = (v.HumanoidRootPart.Position - character.HumanoidRootPart.Position).magnitude
-         if distance < shortest then
-            shortest = distance
-            closest = v
-         end
-      end
-   end
-
-   if closest then
-      character.HumanoidRootPart.CFrame = closest.HumanoidRootPart.CFrame * CFrame.new(0,5,5)
-      if SelectedWeapon == "Melee" or SelectedWeapon == "Sword" then
-         local tool = character:FindFirstChildOfClass("Tool")
-         if tool then
-            tool:Activate()
-         end
-      elseif SelectedWeapon == "Gun" then
-         local tool = character:FindFirstChildOfClass("Tool")
-         if tool then
-            tool:Activate()
-         end
-      elseif SelectedWeapon == "Fruit" then
-         game:GetService("VirtualInputManager"):SendKeyEvent(true, "E", false, game)
-      end
-   end
-end
-
-function TakeQuest()
-   local level = game.Players.LocalPlayer.Data.Level.Value
-   -- Insert smart quest system here depending on level
-   -- For example:
-   if level >= 1 and level < 10 then
-      -- Go to Bandit Quest
-   elseif level >= 10 and level < 30 then
-      -- Go to Gorilla Quest
-   end
-end
-
-function FarmBones()
-   -- Same AttackNPC but for specific mobs that drop bones
-   AttackNPC()
-end
-
-function SafeHover()
-   local hrp = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-   if hrp then
-      hrp.Velocity = Vector3.new(0,50,0)
-   end
-end
-
-function FixLava()
-   -- Lava safe hover + skill spam
-   local character = game.Players.LocalPlayer.Character
-   local tool = character:FindFirstChildOfClass("Tool")
-   if tool then
-      for i=1,3 do
-         tool:Activate()
-         task.wait(0.2)
-      end
-   end
-end
-
-function TeleportRaceDoor()
-   local race = game.Players.LocalPlayer.Data.Race.Value
-   -- Replace with real position based on your race
-   if race == "Angel" then
-      game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, 1, 1)
-   elseif race == "Shark" then
-      game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(2, 2, 2)
-   elseif race == "Human" then
-      game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(3, 3, 3)
-   elseif race == "Mink" then
-      game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(4, 4, 4)
-   elseif race == "Ghoul" then
-      game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(5, 5, 5)
-   elseif race == "Cyborg" then
-      game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(6, 6, 6)
-   end
-end
-
-function CompleteRaceTrial()
-   -- Do the same like teleport but inside the trial room
-end
-
-function KillTrialPlayers()
-   local character = game.Players.LocalPlayer.Character
-   local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-   if not humanoid then return end
-
-   for _, player in pairs(game.Players:GetPlayers()) do
-      if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-         if player.Team ~= game.Players.LocalPlayer.Team then
-            character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 1)
-            if SelectedWeapon == "Melee" or SelectedWeapon == "Sword" then
-               local tool = character:FindFirstChildOfClass("Tool")
-               if tool then
-                  tool:Activate()
-               end
+AutoFarmBtn.MouseButton1Click:Connect(function()
+    getgenv().AutoFarmLevel = not getgenv().AutoFarmLevel
+    while getgenv().AutoFarmLevel do
+        task.wait()
+        pcall(function()
+            -- Find quest, teleport, attack logic here
+            local enemies = workspace.Enemies:GetChildren()
+            for _,enemy in pairs(enemies) do
+                if enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
+                    repeat
+                        task.wait()
+                        LocalPlayer.Character.HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0,FarmDistanceValue,0)
+                        -- Simulate attack
+                        VirtualUser:Button1Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+                        VirtualUser:Button1Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+                    until not enemy or enemy.Humanoid.Health <= 0 or not getgenv().AutoFarmLevel
+                end
             end
-            if UseSkillWhileKilling then
-               game:GetService("VirtualInputManager"):SendKeyEvent(true, "E", false, game)
-            end
-         end
-      end
-   end
-end
+        end)
+    end
+end)
 
-function TeleportToMirage()
-   -- Find Mirage Island if exist and teleport to it
-   -- climb highest point
-end
+--// Teleport Page (Teleport to Island)
+local TeleportBtn = Instance.new("TextButton", Pages["Teleport"])
+TeleportBtn.Size = UDim2.new(0,200,0,40)
+TeleportBtn.Position = UDim2.new(0,20,0,20)
+TeleportBtn.Text = "Teleport to Next Island"
+TeleportBtn.BackgroundColor3 = Color3.fromRGB(30,30,30)
+TeleportBtn.TextColor3 = Color3.new(1,1,1)
+TeleportBtn.Font = Enum.Font.GothamBold
+TeleportBtn.TextSize = 14
 
-function LockMoon()
-   -- Lock camera rotation toward the moon (use BodyGyro or Camera manipulation)
-end
+TeleportBtn.MouseButton1Click:Connect(function()
+    LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0,30000,0)
+end)
 
-function FindBlueGear()
-   -- Scan Mirage Island and tween toward blue gear
-end
+--// ESP Page (Fruit ESP)
+local FruitESPBtn = Instance.new("TextButton", Pages["ESP"])
+FruitESPBtn.Size = UDim2.new(0,200,0,40)
+FruitESPBtn.Position = UDim2.new(0,20,0,20)
+FruitESPBtn.Text = "Fruit ESP [ON/OFF]"
+FruitESPBtn.BackgroundColor3 = Color3.fromRGB(30,30,30)
+FruitESPBtn.TextColor3 = Color3.new(1,1,1)
+FruitESPBtn.Font = Enum.Font.GothamBold
+FruitESPBtn.TextSize = 14
 
-function TeleportAdvancedDealer()
-   -- Tween to the Advanced Fruit Dealer position
-end
+FruitESPBtn.MouseButton1Click:Connect(function()
+    getgenv().FruitESP = not getgenv().FruitESP
+end)
+
+--// Misc Page (Walk Speed, Farm Distance)
+-- etc
+
+--// Status Page (Mirage Status, Full Moon)
+
+--// Volcano Page (Auto Farm Volcano)
+
+--// V4/Mirage Page (Auto Unlock V4)
+
+--// Settings Page (GUI toggle, rejoin, reset)
+
+--// (Continued very next if you want full finish)
