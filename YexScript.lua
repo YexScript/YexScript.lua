@@ -1,234 +1,629 @@
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
+local LocalPlayer = Players.LocalPlayer
 
-local player = Players.LocalPlayer
-local mouse = player:GetMouse()
+-- Destroy old GUI if exists
+pcall(function() CoreGui.YexScriptHub:Destroy() end)
 
--- Create ScreenGui
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "YexScriptHub"
-screenGui.ResetOnSpawn = false
-screenGui.Parent = game.CoreGui
-
--- Toggle Button
-local toggleButton = Instance.new("TextButton")
-toggleButton.Name = "ToggleButton"
-toggleButton.Size = UDim2.new(0, 40, 0, 40)
-toggleButton.Position = UDim2.new(0, 10, 0.5, -20)
-toggleButton.Text = "Y"
-toggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-toggleButton.Parent = screenGui
+-- UI Library Table
+local YexScript = {}
+YexScript.Gui = Instance.new("ScreenGui", CoreGui)
+YexScript.Gui.Name = "YexScriptHub"
+YexScript.Gui.ResetOnSpawn = false
 
 -- Main Frame
-local mainFrame = Instance.new("Frame")
-mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 650, 0, 400)
-mainFrame.Position = UDim2.new(0.5, -325, 0.5, -200)
-mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-mainFrame.BorderSizePixel = 0
-mainFrame.Visible = true
-mainFrame.Parent = screenGui
+local Main = Instance.new("Frame", YexScript.Gui)
+Main.Size = UDim2.new(0, 600, 0, 400)
+Main.Position = UDim2.new(0.5, -300, 0.5, -200)
+Main.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Main.BorderSizePixel = 0
+Main.Active = true
+Main.Draggable = true
 
--- Dragging
-local dragging = false
-local dragInput, dragStart, startPos
+-- Title
+local Title = Instance.new("TextLabel", Main)
+Title.Size = UDim2.new(1, 0, 0, 35)
+Title.Text = "YexScript HUB"
+Title.BackgroundTransparency = 1
+Title.TextColor3 = Color3.fromRGB(255, 0, 0)
+Title.Font = Enum.Font.GothamBold
+Title.TextScaled = true
 
-mainFrame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = mainFrame.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
+-- Tab Buttons Holder
+local TabHolder = Instance.new("Frame", Main)
+TabHolder.Size = UDim2.new(0, 150, 1, -35)
+TabHolder.Position = UDim2.new(0, 0, 0, 35)
+TabHolder.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+TabHolder.BorderSizePixel = 0
+
+-- Content Holder
+local ContentHolder = Instance.new("Frame", Main)
+ContentHolder.Size = UDim2.new(1, -150, 1, -35)
+ContentHolder.Position = UDim2.new(0, 150, 0, 35)
+ContentHolder.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+ContentHolder.BorderSizePixel = 0
+
+-- UI Corner
+local function AddCorner(obj, radius)
+	local uiCorner = Instance.new("UICorner")
+	uiCorner.CornerRadius = UDim.new(0, radius or 8)
+	uiCorner.Parent = obj
+end
+AddCorner(Main)
+AddCorner(TabHolder)
+AddCorner(ContentHolder)
+
+-- Tabs system setup
+YexScript.Tabs = {}
+function YexScript:AddTab(tabName)
+	local Button = Instance.new("TextButton", TabHolder)
+	Button.Size = UDim2.new(1, 0, 0, 30)
+	Button.BackgroundTransparency = 1
+	Button.Text = tabName
+	Button.TextColor3 = Color3.fromRGB(200, 200, 200)
+	Button.Font = Enum.Font.Gotham
+	Button.TextSize = 14
+
+	local Page = Instance.new("ScrollingFrame", ContentHolder)
+	Page.Name = tabName .. "Page"
+	Page.Visible = false
+	Page.Size = UDim2.new(1, 0, 1, 0)
+	Page.CanvasSize = UDim2.new(0, 0, 5, 0)
+	Page.ScrollBarThickness = 6
+	Page.BackgroundTransparency = 1
+
+	Button.MouseButton1Click:Connect(function()
+		for _, v in pairs(ContentHolder:GetChildren()) do
+			if v:IsA("ScrollingFrame") then
+				v.Visible = false
+			end
+		end
+		Page.Visible = true
+	end)
+
+	YexScript.Tabs[tabName] = Page
+	return Page
+end
+
+local MainTab = Window:CreateTab("Main", 4483362458)
+
+local SelectedWeapon = "Melee"
+MainTab:CreateDropdown({
+    Name = "Select Weapon",
+    Options = {"Melee", "Sword", "Fruit", "Gun"},
+    CurrentOption = "Melee",
+    Callback = function(Value)
+        SelectedWeapon = Value
     end
-end)
+})
 
-mainFrame.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
-        dragInput = input
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        local delta = input.Position - dragStart
-        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-end)
-
--- Tab Buttons Panel
-local tabPanel = Instance.new("Frame")
-tabPanel.Name = "TabPanel"
-tabPanel.Size = UDim2.new(0, 120, 1, 0)
-tabPanel.Position = UDim2.new(0, 0, 0, 0)
-tabPanel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-tabPanel.Parent = mainFrame
-
--- Container for Tab Content
-local tabContent = Instance.new("Frame")
-tabContent.Name = "TabContent"
-tabContent.Size = UDim2.new(1, -120, 1, 0)
-tabContent.Position = UDim2.new(0, 120, 0, 0)
-tabContent.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-tabContent.Parent = mainFrame
-
--- Toggle visibility
-toggleButton.MouseButton1Click:Connect(function()
-    mainFrame.Visible = not mainFrame.Visible
-end)
-
--- Function to create tab buttons and frames
-local tabs = {}
-local function createTab(name)
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(1, 0, 0, 40)
-    button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    button.Text = name
-    button.Parent = tabPanel
-
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, 0, 1, 0)
-    frame.Visible = false
-    frame.BackgroundTransparency = 1
-    frame.Parent = tabContent
-
-    button.MouseButton1Click:Connect(function()
-        for _, tab in pairs(tabs) do
-            tab.Frame.Visible = false
+MainTab:CreateToggle({
+    Name = "Auto Farm Level",
+    CurrentValue = false,
+    Callback = function(state)
+        getgenv().AutoFarmLevel = state
+        while getgenv().AutoFarmLevel do
+            task.wait()
+            -- Call your level farming function with selected weapon
         end
-        frame.Visible = true
-    end)
-
-    table.insert(tabs, {Name = name, Button = button, Frame = frame})
-    return frame
-end
-
--- Creating Tabs
-local mainTab = createTab("Main")
-local teleportTab = createTab("Teleport")
-local espTab = createTab("ESP")
-local miscTab = createTab("Misc")
-local volcanoTab = createTab("Volcano")
-local v4Tab = createTab("V4/Mirage")
-local statusTab = createTab("Status")
-local settingsTab = createTab("Settings")
-
-local function startAutoFarmLevel()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/AutoFarmLevel.lua"))()
-end
-
-local function startAutoBonesFarm()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/AutoFarmBones.lua"))()
-end
-
--- Volcano Tab Functions
-local function startPrehistoricRaid()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/Volcano/AutoRaid.lua"))()
-end
-
-local function findPrehistoricIsland()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/Volcano/FindPrehistoricIsland.lua"))()
-end
-
--- V4/Mirage Tab Functions
-local function teleportTempleOfTime()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/V4/TempleTP.lua"))()
-end
-
-local function teleportRaceDoor()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/V4/RaceDoorTP.lua"))()
-end
-
-local function completeTrialForRace()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/V4/CompleteTrials.lua"))()
-end
-
-local function autoKillPlayersInTrial()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/V4/AutoKillPlayers.lua"))()
-end
-
--- ESP Tab Functions
-local function enableESP()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/ESP.lua"))()
-end
-
--- Teleport Tab Functions
-local function teleportToIsland(name)
-    -- Use name input to teleport to specific island
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/Teleport.lua"))()(name)
-end
-
--- Status Tab Functions
-local function updateStatus()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/Status.lua"))()
-end
-
--- Misc Tab Functions
-local function setWalkSpeed(value)
-    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = value
-end
-
-local function setFarmDistance(value)
-    _G.FarmDistance = value
-end
-
-local function setTweenSpeed(value)
-    _G.TweenSpeed = value
-end
-
-local function setBringMobDistance(value)
-    _G.BringMobDistance = value
-end
-
--- Devil Fruit Tab Functions
-local function autoRandomFruit()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/Fruit/AutoRandom.lua"))()
-end
-
-local function autoTPToFruit()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/Fruit/AutoTP.lua"))()
-end
-
-local function autoStoreFruit()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/Fruit/AutoStore.lua"))()
-end
-
--- Auto Raid Function
-local function startAutoRaid()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/AutoRaid.lua"))()
-end
-
--- Toggle GUI
-local toggleKey = Enum.KeyCode.Y
-UIS.InputBegan:Connect(function(input, isProcessed)
-    if not isProcessed and input.KeyCode == toggleKey then
-        MainUI.Enabled = not MainUI.Enabled
     end
+})
+
+MainTab:CreateToggle({
+    Name = "Auto Farm Bone",
+    CurrentValue = false,
+    Callback = function(state)
+        getgenv().AutoFarmBones = state
+        while getgenv().AutoFarmBones do
+            task.wait()
+            -- Auto bone farming function
+        end
+    end
+})
+
+MainTab:CreateToggle({
+    Name = "Auto Farm Chest",
+    CurrentValue = false,
+    Callback = function(state)
+        getgenv().AutoChest = state
+        while getgenv().AutoChest do
+            task.wait()
+            -- Chest farming logic
+        end
+    end
+})
+
+MainTab:CreateToggle({
+    Name = "Auto Attack (Click)",
+    CurrentValue = false,
+    Callback = function(state)
+        getgenv().AutoAttack = state
+        while getgenv().AutoAttack do
+            task.wait()
+            pcall(function()
+                if game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool") then
+                    game:service('VirtualInputManager'):SendMouseButtonEvent(0, 0, 0, true, game, 1)
+                    game:service('VirtualInputManager'):SendMouseButtonEvent(0, 0, 0, false, game, 1)
+                end
+            end)
+        end
+    end
+})
+
+local TeleportTab = Window:CreateTab("Teleport", 4483362458)
+
+TeleportTab:CreateDropdown({
+    Name = "Select Sea",
+    Options = {"First Sea", "Second Sea", "Third Sea"},
+    CurrentOption = "First Sea",
+    Callback = function(value)
+        getgenv().SelectedSea = value
+    end
+})
+
+TeleportTab:CreateInput({
+    Name = "Teleport to Job ID",
+    PlaceholderText = "Enter Job ID...",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(jobId)
+        if jobId and jobId ~= "" then
+            game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, jobId, game.Players.LocalPlayer)
+        end
+    end
+})
+
+TeleportTab:CreateButton({
+    Name = "Teleport to Spawn Point",
+    Callback = function()
+        local SpawnPoint = game:GetService("Workspace").SpawnPoints:FindFirstChild("DefaultSpawn")
+        if SpawnPoint then
+            game.Players.LocalPlayer.Character:PivotTo(SpawnPoint.CFrame)
+        end
+    end
+})
+
+local ESPTab = Window:CreateTab("ESP", 4483362458)
+
+-- Toggle ESP for Fruits
+ESPTab:CreateToggle({
+    Name = "ESP Fruits",
+    CurrentValue = false,
+    Callback = function(state)
+        getgenv().FruitESP = state
+        while getgenv().FruitESP do
+            for _, v in pairs(game:GetService("Workspace"):GetChildren()) do
+                if v:IsA("Tool") and string.find(v.Name:lower(), "fruit") and not v:FindFirstChild("FruitESP") then
+                    local esp = Instance.new("BillboardGui", v)
+                    esp.Name = "FruitESP"
+                    esp.Size = UDim2.new(0, 100, 0, 40)
+                    esp.AlwaysOnTop = true
+                    local text = Instance.new("TextLabel", esp)
+                    text.Size = UDim2.new(1, 0, 1, 0)
+                    text.Text = v.Name
+                    text.TextColor3 = Color3.new(1, 0, 0)
+                    text.BackgroundTransparency = 1
+                end
+            end
+            task.wait(2)
+        end
+        -- Cleanup
+        for _, v in pairs(game:GetService("Workspace"):GetChildren()) do
+            if v:FindFirstChild("FruitESP") then
+                v:FindFirstChild("FruitESP"):Destroy()
+            end
+        end
+    end
+})
+
+-- Toggle ESP for Flowers
+ESPTab:CreateToggle({
+    Name = "ESP Flowers",
+    CurrentValue = false,
+    Callback = function(state)
+        getgenv().FlowerESP = state
+        local function highlightFlower(flowerName)
+            for _, v in pairs(game.Workspace:GetDescendants()) do
+                if v.Name == flowerName and not v:FindFirstChild("FlowerESP") then
+                    local esp = Instance.new("BillboardGui", v)
+                    esp.Name = "FlowerESP"
+                    esp.Size = UDim2.new(0, 100, 0, 40)
+                    esp.AlwaysOnTop = true
+                    local text = Instance.new("TextLabel", esp)
+                    text.Size = UDim2.new(1, 0, 1, 0)
+                    text.Text = flowerName
+                    text.TextColor3 = Color3.new(0, 1, 0)
+                    text.BackgroundTransparency = 1
+                end
+            end
+        end
+        while getgenv().FlowerESP do
+            highlightFlower("Blue Flower")
+            highlightFlower("Red Flower")
+            task.wait(2)
+        end
+        for _, v in pairs(game:GetService("Workspace"):GetDescendants()) do
+            if v:FindFirstChild("FlowerESP") then
+                v:FindFirstChild("FlowerESP"):Destroy()
+            end
+        end
+    end
+})
+
+local MiscTab = Window:CreateTab("Misc", 4483362458)
+
+-- Walk Speed Slider
+MiscTab:CreateSlider({
+    Name = "Walk Speed",
+    Range = {16, 200},
+    Increment = 1,
+    Suffix = "Speed",
+    CurrentValue = 16,
+    Callback = function(Value)
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
+    end,
+})
+
+-- Tween Speed (Used for teleport tweening)
+MiscTab:CreateSlider({
+    Name = "Tween Speed",
+    Range = {1, 300},
+    Increment = 1,
+    Suffix = "Speed",
+    CurrentValue = 100,
+    Callback = function(Value)
+        getgenv().TweenSpeed = Value
+    end,
+})
+
+-- Farm Distance (how far from enemy during auto farm)
+MiscTab:CreateSlider({
+    Name = "Farm Distance",
+    Range = {5, 35},
+    Increment = 1,
+    Suffix = "Studs",
+    CurrentValue = 15,
+    Callback = function(Value)
+        getgenv().FarmDistance = Value
+    end,
+})
+
+-- Bring Mob Distance (how far enemies can be grouped)
+MiscTab:CreateSlider({
+    Name = "Bring Mob Distance",
+    Range = {50, 300},
+    Increment = 10,
+    Suffix = "Studs",
+    CurrentValue = 200,
+    Callback = function(Value)
+        getgenv().BringMobDistance = Value
+    end,
+})
+
+local StatusTab = Window:CreateTab("Status", 4483362458)
+
+-- Utility Function
+local function CreateStatusLabel(name, checkFunction)
+    StatusTab:CreateParagraph({
+        Title = name,
+        Content = checkFunction() and "True" or "False"
+    })
+end
+
+-- Mirage Island Check
+CreateStatusLabel("Mirage Island", function()
+    for _, island in pairs(game:GetService("Workspace"):GetChildren()) do
+        if island.Name:lower():find("mirage") then
+            return true
+        end
+    end
+    return false
 end)
 
--- Connect buttons to functions here
-mainTab:Button("Auto Farm Level", startAutoFarmLevel)
-mainTab:Button("Auto Farm Bones", startAutoBonesFarm)
-volcanoTab:Button("Prehistoric Raid", startPrehistoricRaid)
-volcanoTab:Button("Find Prehistoric Island", findPrehistoricIsland)
-v4Tab:Button("TP Temple Of Time", teleportTempleOfTime)
-v4Tab:Button("TP Race Door", teleportRaceDoor)
-v4Tab:Button("Complete All Trials", completeTrialForRace)
-v4Tab:Button("Auto Kill Trial Players", autoKillPlayersInTrial)
-espTab:Button("Enable ESP", enableESP)
-teleportTab:Button("Teleport to Island", function() teleportToIsland("UserInput") end)
-statusTab:Button("Update Status", updateStatus)
-miscTab:Slider("Walk Speed", 0, 200, 16, setWalkSpeed)
-miscTab:Slider("Farm Distance", 0, 35, 20, setFarmDistance)
-miscTab:Slider("Tween Speed", 0, 300, 100, setTweenSpeed)
-miscTab:Slider("Bring Mob Distance", 0, 300, 150, setBringMobDistance)
-dfTab:Button("Auto Random Fruit", autoRandomFruit)
-dfTab:Button("Auto TP to Fruit", autoTPToFruit)
-dfTab:Button("Auto Store Fruit", autoStoreFruit)
-mainTab:Button("Auto Raid", startAutoRaid)
+-- Kitsune Island Check
+CreateStatusLabel("Kitsune Island", function()
+    for _, island in pairs(game:GetService("Workspace"):GetChildren()) do
+        if island.Name:lower():find("kitsune") then
+            return true
+        end
+    end
+    return false
+end)
+
+-- Full Moon Check
+CreateStatusLabel("Full Moon", function()
+    local Lighting = game:GetService("Lighting")
+    return Lighting:GetMoonPhase and Lighting:GetMoonPhase() == Enum.MoonPhase.FullMoon
+end)
+
+-- Legendary Sword Dealer Check (only for Second Sea)
+CreateStatusLabel("Legendary Sword Dealer", function()
+    if game.PlaceId == 4442272183 then -- Second Sea
+        for _, npc in pairs(game:GetService("Workspace").NPCs:GetChildren()) do
+            if npc.Name == "Legendary Sword Dealer" then
+                return true
+            end
+        end
+    end
+    return false
+end)
+
+local DevilFruitTab = Window:CreateTab("Devil Fruit", 4483362458)
+
+-- Auto Random Fruit
+DevilFruitTab:CreateToggle({
+    Name = "Auto Random Fruit",
+    Default = false,
+    Callback = function(Value)
+        _G.AutoRandomFruit = Value
+        while _G.AutoRandomFruit do
+            local args = {
+                [1] = "Cousin",
+                [2] = "Buy"
+            }
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+            wait(300) -- Wait 5 mins before next purchase
+        end
+    end
+})
+
+-- Auto Teleport to Fruit
+DevilFruitTab:CreateToggle({
+    Name = "Auto Teleport to Fruit",
+    Default = false,
+    Callback = function(Value)
+        _G.AutoTPFruit = Value
+        while _G.AutoTPFruit do
+            for _, fruit in pairs(game.Workspace:GetDescendants()) do
+                if fruit:IsA("Tool") and fruit:FindFirstChild("Handle") then
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = fruit.Handle.CFrame
+                end
+            end
+            wait(5)
+        end
+    end
+})
+
+-- Auto Store Fruit
+DevilFruitTab:CreateToggle({
+    Name = "Auto Store Fruit",
+    Default = false,
+    Callback = function(Value)
+        _G.AutoStoreFruit = Value
+        while _G.AutoStoreFruit do
+            for i, v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+                if v:IsA("Tool") and v.ToolTip == "Devil Fruit" then
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StoreFruit", v.Name)
+                end
+            end
+            wait(2)
+        end
+    end
+})
+
+local VolcanoTab = Window:CreateTab("Volcano", 4483362458)
+
+-- Auto Teleport to Prehistoric Island
+VolcanoTab:CreateToggle({
+    Name = "Auto Teleport to Prehistoric Island",
+    Default = false,
+    Callback = function(Value)
+        _G.AutoTPPrehistoric = Value
+        while _G.AutoTPPrehistoric do
+            local args = {
+                [1] = "TravelPrehistoric"
+            }
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+            wait(10)
+        end
+    end
+})
+
+-- Auto Find Prehistoric Island (combined with TP)
+VolcanoTab:CreateToggle({
+    Name = "Auto Find Prehistoric Island",
+    Default = false,
+    Callback = function(Value)
+        _G.AutoFindPrehistoric = Value
+        while _G.AutoFindPrehistoric do
+            for _, island in pairs(game.Workspace:GetChildren()) do
+                if island.Name:find("Prehistoric") then
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = island:GetModelCFrame()
+                end
+            end
+            wait(10)
+        end
+    end
+})
+
+-- Defend Volcano
+VolcanoTab:CreateToggle({
+    Name = "Defend Volcano (Prevent Eruption)",
+    Default = false,
+    Callback = function(Value)
+        _G.DefendVolcano = Value
+        while _G.DefendVolcano do
+            local lavaParts = workspace:FindFirstChild("VolcanoDefendParts")
+            if lavaParts then
+                for _, part in pairs(lavaParts:GetChildren()) do
+                    if part:IsA("BasePart") and part.BrickColor == BrickColor.new("Bright red") then
+                        firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, part, 0)
+                        firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, part, 1)
+                    end
+                end
+            end
+            wait(1)
+        end
+    end
+})
+
+-- Auto Kill Golem
+VolcanoTab:CreateToggle({
+    Name = "Auto Kill Golem",
+    Default = false,
+    Callback = function(Value)
+        _G.AutoKillGolem = Value
+        while _G.AutoKillGolem do
+            for _, mob in pairs(game.Workspace.Enemies:GetChildren()) do
+                if mob.Name == "Magma Golem" and mob:FindFirstChild("HumanoidRootPart") then
+                    repeat
+                        pcall(function()
+                            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0, 10, 0)
+                            game:GetService("VirtualInputManager"):SendKeyEvent(true, "Z", false, game)
+                        end)
+                        wait()
+                    until not mob or not mob:FindFirstChild("Humanoid") or mob.Humanoid.Health <= 0 or not _G.AutoKillGolem
+                end
+            end
+            wait(1)
+        end
+    end
+})
+
+-- Auto Collect Dragon Egg
+VolcanoTab:CreateToggle({
+    Name = "Auto Collect Dragon Egg",
+    Default = false,
+    Callback = function(Value)
+        _G.AutoCollectEgg = Value
+        while _G.AutoCollectEgg do
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v.Name == "DragonEgg" and v:IsA("Tool") then
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.Handle.CFrame
+                end
+            end
+            wait(5)
+        end
+    end
+})
+
+-- Auto Collect Bones
+VolcanoTab:CreateToggle({
+    Name = "Auto Collect Bones",
+    Default = false,
+    Callback = function(Value)
+        _G.AutoCollectBones = Value
+        while _G.AutoCollectBones do
+            local args = {
+                [1] = "Bones",
+                [2] = "Check"
+            }
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+            wait(15)
+        end
+    end
+})
+
+local V4Tab = Window:CreateTab("V4 / Mirage", 4483362458)
+
+-- Teleport to Temple of Time
+V4Tab:CreateButton({
+    Name = "Teleport to Temple of Time",
+    Callback = function()
+        local pos = CFrame.new(-12547, 340, -9908) -- example coordinates
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = pos
+    end
+})
+
+-- Teleport to Door Race
+V4Tab:CreateButton({
+    Name = "Teleport to Door Race",
+    Callback = function()
+        local pos = CFrame.new(-13300, 600, -10600) -- example coordinates
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = pos
+    end
+})
+
+-- Auto Complete Trial
+V4Tab:CreateToggle({
+    Name = "Auto Complete Trial",
+    Default = false,
+    Callback = function(Value)
+        _G.AutoCompleteTrial = Value
+        while _G.AutoCompleteTrial do
+            local args = { [1] = "RaceTrial", [2] = "Start" }
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+            wait(10)
+        end
+    end
+})
+
+-- Auto Kill Player After Trial
+V4Tab:CreateToggle({
+    Name = "Auto Kill Player After Trial",
+    Default = false,
+    Callback = function(Value)
+        _G.AutoKillPlayerAfterTrial = Value
+        while _G.AutoKillPlayerAfterTrial do
+            for _, p in pairs(game.Players:GetPlayers()) do
+                if p.Name ~= game.Players.LocalPlayer.Name then
+                    local char = p.Character
+                    if char and char:FindFirstChild("HumanoidRootPart") then
+                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = char.HumanoidRootPart.CFrame * CFrame.new(0, 10, 0)
+                    end
+                end
+            end
+            wait(2)
+        end
+    end
+})
+
+-- Teleport to Mirage Island (if spawned)
+V4Tab:CreateButton({
+    Name = "Teleport to Mirage Island",
+    Callback = function()
+        for _, v in pairs(workspace:GetChildren()) do
+            if v.Name == "Mirage Island" then
+                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v:GetModelCFrame() + Vector3.new(0, 150, 0)
+                break
+            end
+        end
+    end
+})
+
+-- Lock Moon
+V4Tab:CreateToggle({
+    Name = "Lock Moon View",
+    Default = false,
+    Callback = function(Value)
+        _G.LockMoon = Value
+        while _G.LockMoon do
+            local moon = workspace:FindFirstChild("Moon") or workspace:FindFirstChildWhichIsA("MeshPart", true)
+            if moon then
+                game.Workspace.CurrentCamera.CFrame = CFrame.new(game.Workspace.CurrentCamera.CFrame.Position, moon.Position)
+            end
+            wait(0.5)
+        end
+    end
+})
+
+-- Auto Find Blue Gear
+V4Tab:CreateToggle({
+    Name = "Auto Find Blue Gear",
+    Default = false,
+    Callback = function(Value)
+        _G.AutoFindBlueGear = Value
+        while _G.AutoFindBlueGear do
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v.Name == "Blue Gear" and v:IsA("MeshPart") then
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.CFrame
+                    break
+                end
+            end
+            wait(5)
+        end
+    end
+})
+
+-- Teleport to Advanced Fruit Dealer
+V4Tab:CreateButton({
+    Name = "Teleport to Advanced Fruit Dealer",
+    Callback = function()
+        for _, v in pairs(workspace:GetDescendants()) do
+            if v.Name == "Advanced Fruit Dealer" and v:IsA("Model") then
+                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v:FindFirstChild("HumanoidRootPart").CFrame
+                break
+            end
+        end
+    end
+})
