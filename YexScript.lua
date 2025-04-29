@@ -1,387 +1,234 @@
--- Services
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
-local TeleportService = game:GetService("TeleportService")
 local UserInputService = game:GetService("UserInputService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
+local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 local mouse = player:GetMouse()
 
--- Screen GUI and loading screen
-local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
-ScreenGui.Name = "YexScriptHub"
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "YexScriptHub"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = game.CoreGui
 
-local loadingFrame = Instance.new("Frame")
-loadingFrame.Size = UDim2.new(0, 300, 0, 150)
-loadingFrame.Position = UDim2.new(0.5, -150, 0.5, -75)
-loadingFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-loadingFrame.BorderSizePixel = 0
-loadingFrame.Parent = ScreenGui
-
-local loadingText = Instance.new("TextLabel")
-loadingText.Size = UDim2.new(1, 0, 1, 0)
-loadingText.BackgroundTransparency = 1
-loadingText.Text = "YexScript Hub Loading..."
-loadingText.TextColor3 = Color3.fromRGB(255, 255, 255)
-loadingText.TextScaled = true
-loadingText.Font = Enum.Font.GothamBold
-loadingText.Parent = loadingFrame
-
-wait(2) -- simulate loading
-loadingFrame:Destroy()
+-- Toggle Button
+local toggleButton = Instance.new("TextButton")
+toggleButton.Name = "ToggleButton"
+toggleButton.Size = UDim2.new(0, 40, 0, 40)
+toggleButton.Position = UDim2.new(0, 10, 0.5, -20)
+toggleButton.Text = "Y"
+toggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.Parent = screenGui
 
 -- Main Frame
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 800, 0, 500)
-MainFrame.Position = UDim2.new(0.5, -400, 0.5, -250)
-MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-MainFrame.BorderSizePixel = 0
-MainFrame.Parent = ScreenGui
-MainFrame.Active = true
-MainFrame.Draggable = true
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 650, 0, 400)
+mainFrame.Position = UDim2.new(0.5, -325, 0.5, -200)
+mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+mainFrame.BorderSizePixel = 0
+mainFrame.Visible = true
+mainFrame.Parent = screenGui
 
--- Tab Buttons Container
-local TabContainer = Instance.new("Frame")
-TabContainer.Size = UDim2.new(0, 150, 1, 0)
-TabContainer.Position = UDim2.new(0, 0, 0, 0)
-TabContainer.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-TabContainer.BorderSizePixel = 0
-TabContainer.Parent = MainFrame
+-- Dragging
+local dragging = false
+local dragInput, dragStart, startPos
 
--- Tab Content Container
-local ContentContainer = Instance.new("Frame")
-ContentContainer.Size = UDim2.new(1, -150, 1, 0)
-ContentContainer.Position = UDim2.new(0, 150, 0, 0)
-ContentContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-ContentContainer.BorderSizePixel = 0
-ContentContainer.Parent = MainFrame
+mainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
 
--- Tab creation function
+mainFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+-- Tab Buttons Panel
+local tabPanel = Instance.new("Frame")
+tabPanel.Name = "TabPanel"
+tabPanel.Size = UDim2.new(0, 120, 1, 0)
+tabPanel.Position = UDim2.new(0, 0, 0, 0)
+tabPanel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+tabPanel.Parent = mainFrame
+
+-- Container for Tab Content
+local tabContent = Instance.new("Frame")
+tabContent.Name = "TabContent"
+tabContent.Size = UDim2.new(1, -120, 1, 0)
+tabContent.Position = UDim2.new(0, 120, 0, 0)
+tabContent.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+tabContent.Parent = mainFrame
+
+-- Toggle visibility
+toggleButton.MouseButton1Click:Connect(function()
+    mainFrame.Visible = not mainFrame.Visible
+end)
+
+-- Function to create tab buttons and frames
 local tabs = {}
 local function createTab(name)
     local button = Instance.new("TextButton")
     button.Size = UDim2.new(1, 0, 0, 40)
-    button.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    button.Font = Enum.Font.GothamBold
-    button.TextSize = 14
     button.Text = name
-    button.Parent = TabContainer
+    button.Parent = tabPanel
 
-    local content = Instance.new("ScrollingFrame")
-    content.Size = UDim2.new(1, -10, 1, -10)
-    content.Position = UDim2.new(0, 5, 0, 5)
-    content.BackgroundTransparency = 1
-    content.BorderSizePixel = 0
-    content.CanvasSize = UDim2.new(0, 0, 5, 0)
-    content.Visible = false
-    content.Parent = ContentContainer
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 1, 0)
+    frame.Visible = false
+    frame.BackgroundTransparency = 1
+    frame.Parent = tabContent
 
     button.MouseButton1Click:Connect(function()
         for _, tab in pairs(tabs) do
-            tab.content.Visible = false
+            tab.Frame.Visible = false
         end
-        content.Visible = true
+        frame.Visible = true
     end)
 
-    tabs[#tabs + 1] = {button = button, content = content}
-    return content
+    table.insert(tabs, {Name = name, Button = button, Frame = frame})
+    return frame
 end
 
-local tabs = {
-	Main = createTab("Main"),
-	Teleport = createTab("Teleport"),
-	ESP = createTab("ESP"),
-	Misc = createTab("Misc"),
-	["V4 / Mirage"] = createTab("V4 / Mirage"),
-	Volcano = createTab("Volcano"),
-	Settings = createTab("Settings"),
-}
+-- Creating Tabs
+local mainTab = createTab("Main")
+local teleportTab = createTab("Teleport")
+local espTab = createTab("ESP")
+local miscTab = createTab("Misc")
+local volcanoTab = createTab("Volcano")
+local v4Tab = createTab("V4/Mirage")
+local statusTab = createTab("Status")
+local settingsTab = createTab("Settings")
 
--- Auto Farm Level
-createToggle(tabs.Main, "Auto Farm Level", false, function(state)
-	AutoFarmLevel = state
-	while AutoFarmLevel do
-		task.wait()
-		pcall(function()
-			local quest = getQuestForLevel()
-			if quest then
-				takeQuest(quest)
-				attackQuestNPC(quest)
-			end
-		end)
-	end
-end)
-
--- Auto Farm Bones
-createToggle(tabs.Main, "Auto Farm Bones", false, function(state)
-	AutoFarmBones = state
-	while AutoFarmBones do
-		task.wait()
-		autoFarmBonesLogic()
-	end
-end)
-
--- Weapon Selector
-createDropdown(tabs.Main, "Weapon Type", {"Melee", "Sword", "Gun", "Fruit"}, "Melee", function(selected)
-	SelectedWeaponType = selected
-end)
-
--- Auto Raid
-createToggle(tabs.Main, "Auto Raid", false, function(state)
-	AutoRaid = state
-	while AutoRaid do
-		task.wait()
-		handleAutoRaid()
-	end
-end)
-
--- ESP Features
-createToggle(tabs.ESP, "ESP Fruit", false, function(state)
-	ESPFruit = state
-	handleESPFruit()
-end)
-
-createToggle(tabs.ESP, "ESP Flower", false, function(state)
-	ESPFlower = state
-	handleESPFlower()
-end)
-
--- Teleport Tab
-createDropdown(tabs.Teleport, "Select Sea", {"First Sea", "Second Sea", "Third Sea"}, "First Sea", function(selected)
-	CurrentSea = selected
-end)
-
-createInput(tabs.Teleport, "Job ID", "", function(jobID)
-	JobID = jobID
-end)
-
-createButton(tabs.Teleport, "Teleport to Job ID", function()
-	teleportToJobID(JobID)
-end)-- Misc Tab
-createSlider(tabs.Misc, "Farm Distance", 1, 35, 20, function(value)
-	FarmDistance = value
-end)
-
-createSlider(tabs.Misc, "Tween Speed", 1, 300, 100, function(value)
-	TweenSpeed = value
-end)
-
-createSlider(tabs.Misc, "Bring Mob Distance", 1, 300, 100, function(value)
-	BringMobDistance = value
-end)
-
-createSlider(tabs.Misc, "Walk Speed", 16, 100, 20, function(value)
-	game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = value
-end)
-
--- Devil Fruit Tab (Merged into Misc or create separate tab if needed)
-createToggle(tabs.Misc, "Auto Random Fruit", false, function(state)
-	AutoRandomFruit = state
-	while AutoRandomFruit do
-		task.wait(5)
-		getRandomFruit()
-	end
-end)
-
-createToggle(tabs.Misc, "Auto Store Fruit", false, function(state)
-	AutoStoreFruit = state
-	autoStoreFruit()
-end)
-
-createToggle(tabs.Misc, "Auto Teleport to Fruit", false, function(state)
-	AutoTPFruit = state
-	autoTPToNearestFruit()
-end)
-
--- V4 / Mirage Tab
-createButton(tabs["V4 / Mirage"], "Teleport Temple of Time", function()
-	teleportToTempleOfTime()
-end)
-
-createButton(tabs["V4 / Mirage"], "Teleport to Race Door", function()
-	teleportToRaceDoor()
-end)
-
-createToggle(tabs["V4 / Mirage"], "Auto Complete Trial", false, function(state)
-	AutoTrial = state
-	while AutoTrial do
-		task.wait()
-		autoCompleteTrial()
-	end
-end)
-
-createToggle(tabs["V4 / Mirage"], "Auto Kill Player After Trial", false, function(state)
-	KillPlayerPostTrial = state
-	while KillPlayerPostTrial do
-		task.wait()
-		autoKillTrialPlayers()
-	end
-end)-- Volcano Tab
-createToggle(tabs.Volcano, "Auto Find Prehistoric Island", false, function(state)
-	AutoFindPrehistoricIsland = state
-	while AutoFindPrehistoricIsland do
-		task.wait(5)
-		findPrehistoricIsland()
-	end
-end)
-
-createToggle(tabs.Volcano, "Auto Start Prehistoric Raid", false, function(state)
-	AutoStartPrehistoricRaid = state
-	while AutoStartPrehistoricRaid do
-		task.wait(10)
-		startPrehistoricRaid()
-	end
-end)
-
-createToggle(tabs.Volcano, "Auto Fix Lava", false, function(state)
-	AutoFixLava = state
-	while AutoFixLava do
-		task.wait()
-		fixLavaAutomatically()
-	end
-end)
-
-createToggle(tabs.Volcano, "Auto Kill Lava Golem (Instant)", false, function(state)
-	AutoKillLavaGolem = state
-	while AutoKillLavaGolem do
-		task.wait()
-		killLavaGolemInstant()
-	end
-end)
-
-createToggle(tabs.Volcano, "Low Pressure Always", false, function(state)
-	KeepLowPressure = state
-	while KeepLowPressure do
-		task.wait()
-		maintainLowPressure()
-	end
-end)
-
-function getPlayerRace()
-    local raceValue = game.Players.LocalPlayer:FindFirstChild("Data"):FindFirstChild("Race")
-    return raceValue and raceValue.Value or "Unknown"
+local function startAutoFarmLevel()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/AutoFarmLevel.lua"))()
 end
 
--- Auto Complete Trial
-function autoCompleteTrial()
-    local race = getPlayerRace()
-    if race == "Shark" then
-        spawn(killSeaBeast)
-    elseif race == "Mink" then
-        spawn(activateRedButton)
-    elseif race == "Angel" then
-        spawn(jumpSkyGreen)
-    elseif race == "Human" then
-        spawn(killHumanBoss)
-    elseif race == "Cyborg" then
-        spawn(waitCyborgBomb)
-    elseif race == "Ghoul" then
-        spawn(killGhoulNPC)
-    end
+local function startAutoBonesFarm()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/AutoFarmBones.lua"))()
 end
 
--- Auto Kill Player on Trial
-function autoKillTrialPlayers()
-    for _, player in pairs(game.Players:GetPlayers()) do
-        if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            local hrp = player.Character.HumanoidRootPart
-            repeat task.wait()
-                game.Players.LocalPlayer.Character:SetPrimaryPartCFrame(hrp.CFrame)
-            until not AutoKillTrialPlayers or not player.Character:FindFirstChild("Humanoid") or player.Character.Humanoid.Health <= 0
-        end
-    end
+-- Volcano Tab Functions
+local function startPrehistoricRaid()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/Volcano/AutoRaid.lua"))()
 end
 
--- Prehistoric Lava Functions
-function startPrehistoricRaid()
-    local btn = workspace:FindFirstChild("StartRaid")
-    if btn and (btn.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 5 then
-        game.Players.LocalPlayer.Character:SetPrimaryPartCFrame(CFrame.new(btn.Position))
-        fireclickdetector(btn:FindFirstChildOfClass("ClickDetector"))
-    end
+local function findPrehistoricIsland()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/Volcano/FindPrehistoricIsland.lua"))()
 end
 
-function fixLavaAutomatically()
-    for _, lava in pairs(workspace:GetDescendants()) do
-        if lava.Name == "LavaLeak" then
-            fireclickdetector(lava:FindFirstChildOfClass("ClickDetector"))
-        end
-    end
+-- V4/Mirage Tab Functions
+local function teleportTempleOfTime()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/V4/TempleTP.lua"))()
 end
 
-function maintainLowPressure()
-    local valve = workspace:FindFirstChild("PressureValve")
-    if valve and valve:FindFirstChildOfClass("ClickDetector") then
-        fireclickdetector(valve:FindFirstChildOfClass("ClickDetector"))
-    end
+local function teleportRaceDoor()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/V4/RaceDoorTP.lua"))()
 end
 
-function killLavaGolemInstant()
-    local golem = workspace.Enemies:FindFirstChild("Lava Golem")
-    if golem and golem:FindFirstChild("HumanoidRootPart") then
-        game.Players.LocalPlayer.Character:SetPrimaryPartCFrame(golem.HumanoidRootPart.CFrame * CFrame.new(0, 10, 0))
-        wait(0.1)
-        if AutoAttack then
-            -- attack logic from auto attack will trigger
-        end
-    end
+local function completeTrialForRace()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/V4/CompleteTrials.lua"))()
 end
 
-function findPrehistoricIsland()
-    local islands = workspace:FindFirstChild("Islands")
-    if islands then
-        for _, island in pairs(islands:GetChildren()) do
-            if island.Name:find("Prehistoric") then
-                game.Players.LocalPlayer.Character:SetPrimaryPartCFrame(island:FindFirstChild("TP"):GetModelCFrame())
-            end
-        end
-    end
+local function autoKillPlayersInTrial()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/V4/AutoKillPlayers.lua"))()
 end
 
-local YexHub = Instance.new("ScreenGui")
-YexHub.Name = "YexHub"
-YexHub.ResetOnSpawn = false
-YexHub.DisplayOrder = 999
-YexHub.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-YexHub.Parent = game:GetService("CoreGui")
+-- ESP Tab Functions
+local function enableESP()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/ESP.lua"))()
+end
 
--- [Continue from previous parts...]
+-- Teleport Tab Functions
+local function teleportToIsland(name)
+    -- Use name input to teleport to specific island
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/Teleport.lua"))()(name)
+end
 
--- Part 7: V4 / Mirage Tab
-local V4Tab = TabHandler:AddTab("V4 / Mirage")
+-- Status Tab Functions
+local function updateStatus()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/Status.lua"))()
+end
 
-V4Tab:AddButton("Teleport: Temple of Time", function()
-    -- Teleport to Temple of Time with bypass
-end)
+-- Misc Tab Functions
+local function setWalkSpeed(value)
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = value
+end
 
-V4Tab:AddButton("Teleport: Race Door", function()
-    -- Detect player race and teleport to correct race door
-end)
+local function setFarmDistance(value)
+    _G.FarmDistance = value
+end
 
-V4Tab:AddToggle("Auto Complete Trial", false, function(state)
-    -- Automatically complete trials for each race
-    if state then
-        local race = getPlayerRace()
-        if race == "Shark" then
-            autoKillSeaBeast()
-        elseif race == "Mink" then
-            completeMinkTrial()
-        elseif race == "Angel" then
-            completeAngelTrial()
-        elseif race == "Human" then
-            autoKillBoss()
-        elseif race == "Cyborg" then
-            standOnTopCyborg()
-        elseif race == "Ghoul" then
-            autoKillGhoulTrial()
-        end
+local function setTweenSpeed(value)
+    _G.TweenSpeed = value
+end
+
+local function setBringMobDistance(value)
+    _G.BringMobDistance = value
+end
+
+-- Devil Fruit Tab Functions
+local function autoRandomFruit()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/Fruit/AutoRandom.lua"))()
+end
+
+local function autoTPToFruit()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/Fruit/AutoTP.lua"))()
+end
+
+local function autoStoreFruit()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/Fruit/AutoStore.lua"))()
+end
+
+-- Auto Raid Function
+local function startAutoRaid()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/YexScript/Functions/main/AutoRaid.lua"))()
+end
+
+-- Toggle GUI
+local toggleKey = Enum.KeyCode.Y
+UIS.InputBegan:Connect(function(input, isProcessed)
+    if not isProcessed and input.KeyCode == toggleKey then
+        MainUI.Enabled = not MainUI.Enabled
     end
 end)
 
-V4Tab:AddToggle("Auto Kill Player In Trial", false, function(enabled)
-    -- Attack and kill other players in trial
-end)
+-- Connect buttons to functions here
+mainTab:Button("Auto Farm Level", startAutoFarmLevel)
+mainTab:Button("Auto Farm Bones", startAutoBonesFarm)
+volcanoTab:Button("Prehistoric Raid", startPrehistoricRaid)
+volcanoTab:Button("Find Prehistoric Island", findPrehistoricIsland)
+v4Tab:Button("TP Temple Of Time", teleportTempleOfTime)
+v4Tab:Button("TP Race Door", teleportRaceDoor)
+v4Tab:Button("Complete All Trials", completeTrialForRace)
+v4Tab:Button("Auto Kill Trial Players", autoKillPlayersInTrial)
+espTab:Button("Enable ESP", enableESP)
+teleportTab:Button("Teleport to Island", function() teleportToIsland("UserInput") end)
+statusTab:Button("Update Status", updateStatus)
+miscTab:Slider("Walk Speed", 0, 200, 16, setWalkSpeed)
+miscTab:Slider("Farm Distance", 0, 35, 20, setFarmDistance)
+miscTab:Slider("Tween Speed", 0, 300, 100, setTweenSpeed)
+miscTab:Slider("Bring Mob Distance", 0, 300, 150, setBringMobDistance)
+dfTab:Button("Auto Random Fruit", autoRandomFruit)
+dfTab:Button("Auto TP to Fruit", autoTPToFruit)
+dfTab:Button("Auto Store Fruit", autoStoreFruit)
+mainTab:Button("Auto Raid", startAutoRaid)
