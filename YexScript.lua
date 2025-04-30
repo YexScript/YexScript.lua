@@ -1,10 +1,12 @@
+if game.PlaceId == 2753915549 then
+   
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "YexScript HUB ",
+   Name = "YexScript HUB",
    Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
-   LoadingTitle = "YexScript ",
-   LoadingSubtitle = "Loading please wait",
+   LoadingTitle = "YexScript is loading...",
+   LoadingSubtitle = "By Yexhub",
    Theme = "Default", -- Check https://docs.sirius.menu/rayfield/configuration/themes
 
    DisableRayfieldPrompts = false,
@@ -17,7 +19,7 @@ local Window = Rayfield:CreateWindow({
    },
 
    Discord = {
-      Enabled = false, -- Prompt the user to join your Discord server if their executor supports it
+      Enabled = true, -- Prompt the user to join your Discord server if their executor supports it
       Invite = "https://discord.gg/hsRQNYtx", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ ABCD would be ABCD
       RememberJoins = true -- Set this to false to make them join the discord every time they load it up
    },
@@ -26,7 +28,7 @@ local Window = Rayfield:CreateWindow({
    KeySettings = {
       Title = "YexScript| Key System",
       Subtitle = "Key System",
-      Note = "join discord to get key", -- Use this to tell the user how to get a key
+      Note = "Join discord to key get key https://discord.gg/hsRQNYtx", -- Use this to tell the user how to get a key
       FileName = "Key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
       SaveKey = true, -- The user's key will be saved, but if you change the key, they will be unable to use your script
       GrabKeyFromSite = true, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
@@ -34,67 +36,5 @@ local Window = Rayfield:CreateWindow({
    }
 })
 
-local MainTab = Window:CreateTab("Main", 4483362458)
 
-local SelectedWeapon = "Melee"
-MainTab:CreateDropdown({
-    Name = "Select Weapon",
-    Options = {"Melee", "Sword", "Fruit", "Gun"},
-    CurrentOption = "Melee",
-    Callback = function(Value)
-        SelectedWeapon = Value
-    end
-})
-
-MainTab:CreateToggle({
-    Name = "Auto Farm Level",
-    CurrentValue = false,
-    Callback = function(state)
-        getgenv().AutoFarmLevel = state
-        while getgenv().AutoFarmLevel do
-            task.wait()
-            -- Call your level farming function with selected weapon
-        end
-    end
-})
-
-MainTab:CreateToggle({
-    Name = "Auto Farm Bone",
-    CurrentValue = false,
-    Callback = function(state)
-        getgenv().AutoFarmBones = state
-        while getgenv().AutoFarmBones do
-            task.wait()
-            -- Auto bone farming function
-        end
-    end
-})
-
-MainTab:CreateToggle({
-    Name = "Auto Farm Chest",
-    CurrentValue = false,
-    Callback = function(state)
-        getgenv().AutoChest = state
-        while getgenv().AutoChest do
-            task.wait()
-            -- Chest farming logic
-        end
-    end
-})
-
-MainTab:CreateToggle({
-    Name = "Auto Attack (Click)",
-    CurrentValue = false,
-    Callback = function(state)
-        getgenv().AutoAttack = state
-        while getgenv().AutoAttack do
-            task.wait()
-            pcall(function()
-                if game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool") then
-                    game:service('VirtualInputManager'):SendMouseButtonEvent(0, 0, 0, true, game, 1)
-                    game:service('VirtualInputManager'):SendMouseButtonEvent(0, 0, 0, false, game, 1)
-                end
-            end)
-        end
-    end
-})
+   
