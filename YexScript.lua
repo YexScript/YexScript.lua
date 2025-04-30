@@ -1,5 +1,3 @@
-if game.PlaceId == 2753915549 then
-   
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
@@ -8,22 +6,18 @@ local Window = Rayfield:CreateWindow({
    LoadingTitle = "YexScript is loading...",
    LoadingSubtitle = "By Yexhub",
    Theme = "Default", -- Check https://docs.sirius.menu/rayfield/configuration/themes
-
    DisableRayfieldPrompts = false,
    DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
-
    ConfigurationSaving = {
       Enabled = true,
       FolderName = nil, -- Create a custom folder for your hub/game
       FileName = "Big Hub"
    },
-
    Discord = {
       Enabled = true, -- Prompt the user to join your Discord server if their executor supports it
       Invite = "https://discord.gg/hsRQNYtx", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ ABCD would be ABCD
       RememberJoins = true -- Set this to false to make them join the discord every time they load it up
    },
-
    KeySystem = true, -- Set this to true to use our key system
    KeySettings = {
       Title = "YexScript| Key System",
