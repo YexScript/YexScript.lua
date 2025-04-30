@@ -1,6 +1,8 @@
+if game.PlaceId == 2753915549 then
+
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
-task.wait(2)
+task.wait(1) then 
 
 local Window = Rayfield:CreateWindow({
    Name = "YexScript HUB",
