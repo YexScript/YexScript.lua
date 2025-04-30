@@ -3,7 +3,7 @@ if game.PlaceId ~= 2753915549 and game.PlaceId ~= 4442272183 and game.PlaceId ~=
 end
 
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
-repeat task.wait() until Rayfield
+repeat task.wait(2) until Rayfield
 
 local Window = Rayfield:CreateWindow({
    Name = "YexScript HUB",
