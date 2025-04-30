@@ -1,8 +1,10 @@
-if game.PlaceId == 2753915549 then
+if game.PlaceId ~= 2753915549 and game.PlaceId ~= 4442272183 and game.PlaceId ~= 7449423635 then
+    return warn("This script only runs in Blox Fruits.")
+end
 
+   
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-
-task.wait(1) then 
+wait(2)
 
 local Window = Rayfield:CreateWindow({
    Name = "YexScript HUB",
